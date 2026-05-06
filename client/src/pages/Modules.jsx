@@ -3,7 +3,10 @@ import api from '../utils/api';
 import { Plus, Trash2, Tag, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { useSearch } from '../context/SearchContext';
+
 const Modules = () => {
+  const { searchQuery } = useSearch();
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -52,6 +55,10 @@ const Modules = () => {
       }
     }
   };
+
+  const filteredModules = modules.filter(m => 
+    m.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (loading && modules.length === 0) return <div>Loading categories...</div>;
 
@@ -128,7 +135,7 @@ const Modules = () => {
       </AnimatePresence>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-        {modules.map((m) => (
+        {filteredModules.map((m) => (
           <motion.div
             key={m._id}
             layout

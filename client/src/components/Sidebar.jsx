@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutGrid, 
@@ -8,41 +8,39 @@ import {
   TrendingUp, 
   TrendingDown, 
   Layers, 
-  Wallet, 
   PieChart, 
   FileText, 
   Settings,
-  ChevronLeft,
-  Activity
+  X,
+  Activity,
+  UtensilsCrossed
 } from 'lucide-react';
 
-const Sidebar = ({ onAddTransaction }) => {
+const Sidebar = ({ isOpen, onClose, onAddTransaction }) => {
   const { logout } = useAuth();
 
   const navItems = [
     { icon: LayoutGrid, label: 'Dashboard', path: '/' },
-    { icon: Plus, label: 'Add Transaction', path: '#', onClick: onAddTransaction },
+    { icon: Plus, label: 'Add Transaction', path: '#', onClick: () => { onAddTransaction(); onClose(); } },
     { icon: TrendingUp, label: 'Income', path: '/income' },
     { icon: TrendingDown, label: 'Expenses', path: '/expenses' },
+    { icon: UtensilsCrossed, label: 'Canteen', path: '/canteen' },
     { icon: Layers, label: 'Modules', path: '/modules' },
-    { icon: Wallet, label: 'Budget Planner', path: '/budget' },
     { icon: Activity, label: 'Analytics', path: '/analytics' },
     { icon: FileText, label: 'Reports', path: '/reports' },
   ];
 
-  return (
+  const sidebarContent = (
     <aside style={{
       width: '280px',
       height: '100vh',
       display: 'flex',
       flexDirection: 'column',
       padding: '1.5rem 1rem',
-      position: 'sticky',
-      top: 0,
-      background: '#0f172a', // Deep dark background from screenshot
+      background: '#0f172a',
       color: 'white',
       borderRight: '1px solid rgba(255,255,255,0.05)',
-      zIndex: 100
+      zIndex: 1000
     }}>
       {/* Header / Logo */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', padding: '0 0.5rem' }}>
@@ -60,11 +58,13 @@ const Sidebar = ({ onAddTransaction }) => {
           </div>
           <span style={{ fontSize: '1.4rem', fontWeight: 700, letterSpacing: '-0.02em' }}>ExpenseFlow</span>
         </div>
-        <ChevronLeft size={20} style={{ color: '#94a3b8', cursor: 'pointer' }} />
+        <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }} className="show-mobile">
+          <X size={24} />
+        </button>
       </div>
 
       {/* Main Nav */}
-      <nav style={{ flex: 1 }}>
+      <nav style={{ flex: 1, overflowY: 'auto' }}>
         <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {navItems.map((item) => (
             <li key={item.label}>
@@ -82,7 +82,10 @@ const Sidebar = ({ onAddTransaction }) => {
                     textAlign: 'left',
                     fontSize: '0.95rem',
                     fontWeight: 500,
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer'
                   }}
                   onMouseOver={(e) => e.currentTarget.style.color = 'white'}
                   onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
@@ -93,6 +96,7 @@ const Sidebar = ({ onAddTransaction }) => {
               ) : (
                 <NavLink 
                   to={item.path}
+                  onClick={onClose}
                   style={({ isActive }) => ({
                     display: 'flex',
                     alignItems: 'center',
@@ -122,6 +126,7 @@ const Sidebar = ({ onAddTransaction }) => {
           <li>
             <NavLink 
               to="/settings"
+              onClick={onClose}
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
@@ -145,7 +150,8 @@ const Sidebar = ({ onAddTransaction }) => {
                 background: '#1e293b',
                 padding: '0.5rem 0.75rem',
                 borderRadius: '8px',
-                width: 'fit-content'
+                width: 'fit-content',
+                border: 'none'
               }}
             >
               Manage cookies or opt out
@@ -154,6 +160,39 @@ const Sidebar = ({ onAddTransaction }) => {
         </ul>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hide-mobile">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isOpen && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}>
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+            />
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '280px' }}
+            >
+              {sidebarContent}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

@@ -23,12 +23,12 @@ app.use(cookieParser());
 const authRoutes = require('./routes/authRoutes');
 const moduleRoutes = require('./routes/moduleRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
-const budgetRoutes = require('./routes/budgetRoutes');
+const canteenRoutes = require('./routes/canteenRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/transactions', transactionRoutes);
-app.use('/api/budget', budgetRoutes);
+app.use('/api/canteen', canteenRoutes);
 
 app.get('/api/ping', (req, res) => res.json({ message: 'pong' }));
 

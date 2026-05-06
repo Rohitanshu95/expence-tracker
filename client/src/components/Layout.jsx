@@ -4,23 +4,54 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import AddTransactionModal from './AddTransactionModal';
 import { motion } from 'framer-motion';
+import { Menu } from 'lucide-react';
 
 const Layout = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleRefresh = () => {
-    // In a real app, this would be a context refresh, but here we just trigger reload 
-    // to ensure all charts and lists update with new data
     window.location.reload();
   };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
-      {/* Sidebar stays fixed on the left */}
-      <Sidebar onAddTransaction={() => setIsModalOpen(true)} />
+      {/* Mobile Toggle */}
+      {!isSidebarOpen && (
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="show-mobile"
+          style={{
+            position: 'fixed',
+            top: '1.25rem',
+            left: '1rem',
+            zIndex: 100,
+            background: 'white',
+            border: '1px solid var(--border)',
+            padding: '0.6rem',
+            borderRadius: '12px',
+            boxShadow: 'var(--shadow)',
+            cursor: 'pointer'
+          }}
+        >
+          <Menu size={24} color="var(--primary)" />
+        </button>
+      )}
+
+      {/* Sidebar - Handles both Desktop and Mobile Drawer */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        onAddTransaction={() => setIsModalOpen(true)} 
+      />
       
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '0 2.5rem 2rem 2.5rem', overflowY: 'auto' }}>
+      <main style={{ 
+        flex: 1, 
+        padding: '0 2.5rem 2rem 2.5rem', 
+        overflowY: 'auto',
+        maxWidth: '100vw'
+      }}>
         <Header />
         
         <motion.div

@@ -5,7 +5,10 @@ import TransactionTable from '../components/TransactionTable';
 import { Wallet, TrendingUp, TrendingDown, CreditCard, Filter } from 'lucide-react';
 import api from '../utils/api';
 
+import { useSearch } from '../context/SearchContext';
+
 const Dashboard = () => {
+  const { searchQuery } = useSearch();
   const [summary, setSummary] = useState({ totalBalance: 0, totalIncome: 0, totalExpense: 0, chartData: [] });
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +20,7 @@ const Dashboard = () => {
         api.get('/transactions')
       ]);
       setSummary(summaryRes.data);
-      setTransactions(transRes.data.slice(0, 5)); // Recent 5
+      setTransactions(transRes.data); // Fetch all to allow search, will slice for display
       setLoading(false);
     } catch (err) {
       console.error('Error fetching dashboard data', err);
@@ -25,9 +28,31 @@ const Dashboard = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      try {
+        await api.delete(`/transactions/${id}`);
+        fetchData(); // Refresh everything
+      } catch (err) {
+        console.error('Error deleting transaction', err);
+        alert('Failed to delete transaction');
+      }
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  const filteredTransactions = transactions.filter(tx => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      tx.note?.toLowerCase().includes(query) ||
+      tx.module?.name?.toLowerCase().includes(query) ||
+      tx.amount.toString().includes(query)
+    );
+  }).slice(0, 5); // Still show only 5 recent after filter
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -67,7 +92,7 @@ const Dashboard = () => {
         
         <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', background: 'white' }}>
           <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1.5rem' }}>Recent Activity</h3>
-          <TransactionTable transactions={transactions} onDelete={fetchData} compact />
+          <TransactionTable transactions={filteredTransactions} onDelete={handleDelete} compact />
         </div>
       </div>
     </div>

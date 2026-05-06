@@ -1,29 +1,21 @@
 :root {
-  /* Premium Fintech Light Palette */
-  --bg-main: #f8fafc;
-  --bg-sidebar: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.8);
   --primary: #6366f1;
+  --primary-hover: #4f46e5;
   --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   --success: #10b981;
   --error: #ef4444;
   --warning: #f59e0b;
-  --text-main: #1e293b;
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
   --text-muted: #64748b;
   --border: #e2e8f0;
-  --glass-border: rgba(255, 255, 255, 0.5);
-  
-  /* Shadow & Radius */
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.1);
-  --radius-sm: 0.5rem;
-  --radius: 0.75rem;
-  --radius-lg: 1.25rem;
-  --radius-xl: 2rem;
-  
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color-scheme: light;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -33,56 +25,30 @@
 }
 
 body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-}
-
-/* Glassmorphism Utility (Light Mode) */
-.glass {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow);
-}
-
-.glass-hover:hover {
-  background: white;
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-  transition: all 0.3s ease;
 }
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: #cbd5e1;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: #94a3b8;
 }
 
-/* Layout Classes */
-.dashboard-container {
-  display: flex;
-  min-height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-}
-
-/* Typography Utilities */
+/* Typography Utility */
 .heading-gradient {
   background: var(--primary-gradient);
   -webkit-background-clip: text;
@@ -90,73 +56,112 @@ body {
   font-weight: 800;
 }
 
-/* Buttons */
-button {
-  cursor: pointer;
-  border: none;
-  background: none;
-  transition: all 0.2s ease;
+/* Glassmorphism Classes */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow);
 }
 
+/* Button Styles */
 .btn-primary {
   background: var(--primary-gradient);
   color: white;
+  border: none;
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius);
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
-  opacity: 0.95;
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4);
 }
 
-/* Input Styles */
-input, select, textarea {
-  background: white;
-  border: 1px solid var(--border);
-  color: var(--text-main);
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius);
-  outline: none;
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Table Responsive Container */
+.table-container {
   width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius);
 }
 
-input:focus {
-  border-color: var(--primary);
+/* Form Styles */
+input, select, textarea {
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary) !important;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-/* Datepicker Custom Styles */
+/* Mobile Breakpoints */
+.show-mobile {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --radius-xl: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .show-mobile {
+    display: block !important;
+  }
+
+  main {
+    padding: 1rem !important;
+  }
+
+  .glass {
+    padding: 1.25rem !important;
+  }
+}
+
+/* Datepicker Premium Styling */
+.premium-datepicker {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  border: 2px solid #f1f5f9;
+  background: #f8fafc;
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
 .datepicker-wrapper {
   width: 100%;
 }
 
-.premium-datepicker {
-  width: 100% !important;
-  padding: 0.75rem 1rem 0.75rem 2.5rem !important;
-  background: white !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius) !important;
-  color: var(--text-main) !important;
-  font-family: inherit !important;
-  font-size: 0.875rem !important;
-  outline: none !important;
-}
-
-.react-datepicker {
-  background: white !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-lg) !important;
-  font-family: inherit !important;
-}
-
-.react-datepicker__header {
-  background: #f8fafc !important;
-  border-bottom: 1px solid var(--border) !important;
+@media (max-width: 640px) {
+  .responsive-modal {
+    padding: 1.5rem !important;
+    border-radius: 1.5rem !important;
+    max-width: 95% !important;
+  }
+  
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

@@ -207,13 +207,13 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
                       type="text" required placeholder="e.g. Freelance, Salary"
                       value={formData.otherDetail}
                       onChange={(e) => setFormData({ ...formData, otherDetail: e.target.value })}
-                      style={{ border: '2px solid #f1f5f9', background: '#f8fafc' }}
+                      style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.875rem 1rem', borderRadius: '12px' }}
                     />
                   ) : (
                     <select
                       required value={formData.moduleId}
                       onChange={(e) => setFormData({ ...formData, moduleId: e.target.value })}
-                      style={{ width: '100%', padding: '0.875rem 1rem', border: '2px solid #f1f5f9', background: '#f8fafc', fontWeight: 600 }}
+                      style={{ width: '100%', padding: '0.875rem 1rem', border: '2px solid #f1f5f9', background: '#f8fafc', fontWeight: 600, borderRadius: '12px' }}
                     >
                       <option value="" disabled>Select a category</option>
                       {modules.filter(m => m.type === 'expense').map(m => (
@@ -229,13 +229,13 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
                       type="text" required placeholder="Specify other category"
                       value={formData.otherDetail}
                       onChange={(e) => setFormData({ ...formData, otherDetail: e.target.value })}
-                      style={{ border: '2px solid #f1f5f9', background: '#f8fafc' }}
+                      style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.875rem 1rem', borderRadius: '12px' }}
                     />
                   </motion.div>
                 )}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>Date</label>
                   <DatePicker
@@ -252,7 +252,7 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
                     type="text" placeholder="Short note"
                     value={formData.note}
                     onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                    style={{ border: '2px solid #f1f5f9', background: '#f8fafc' }}
+                    style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.875rem 1rem', borderRadius: '12px' }}
                   />
                 </div>
               </div>

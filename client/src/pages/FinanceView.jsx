@@ -4,9 +4,11 @@ import { TrendingUp, TrendingDown, Calendar, Filter, Download, ArrowLeft, Indian
 import { useNavigate } from 'react-router-dom';
 import TransactionTable from '../components/TransactionTable';
 import api from '../utils/api';
+import { useSearch } from '../context/SearchContext';
 
 const FinanceView = ({ type }) => {
   const navigate = useNavigate();
+  const { searchQuery } = useSearch();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterPeriod, setFilterPeriod] = useState('monthly'); // daily, weekly, monthly, all
@@ -25,6 +27,18 @@ const FinanceView = ({ type }) => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      try {
+        await api.delete(`/transactions/${id}`);
+        fetchData(); // Refresh list after delete
+      } catch (err) {
+        console.error('Error deleting transaction', err);
+        alert('Failed to delete transaction');
+      }
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [type]);
@@ -36,21 +50,31 @@ const FinanceView = ({ type }) => {
     return transactions.filter(tx => {
       const txDate = new Date(tx.date);
       
-      if (filterPeriod === 'daily') {
-        return txDate >= today;
-      }
-      if (filterPeriod === 'weekly') {
+      // Period filter
+      let matchesPeriod = true;
+      if (filterPeriod === 'daily') matchesPeriod = txDate >= today;
+      else if (filterPeriod === 'weekly') {
         const lastWeek = new Date(today);
         lastWeek.setDate(today.getDate() - 7);
-        return txDate >= lastWeek;
+        matchesPeriod = txDate >= lastWeek;
       }
-      if (filterPeriod === 'monthly') {
+      else if (filterPeriod === 'monthly') {
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        return txDate >= firstDayOfMonth;
+        matchesPeriod = txDate >= firstDayOfMonth;
       }
-      return true; // 'all'
+
+      if (!matchesPeriod) return false;
+
+      // Search filter
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        tx.note?.toLowerCase().includes(query) ||
+        tx.module?.name?.toLowerCase().includes(query) ||
+        tx.amount.toString().includes(query)
+      );
     });
-  }, [transactions, filterPeriod]);
+  }, [transactions, filterPeriod, searchQuery]);
 
   const totalAmount = useMemo(() => {
     return filteredTransactions.reduce((acc, tx) => acc + tx.amount, 0);
@@ -143,7 +167,7 @@ const FinanceView = ({ type }) => {
         {loading ? (
           <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading records...</div>
         ) : (
-          <TransactionTable transactions={filteredTransactions} onDelete={fetchData} />
+          <TransactionTable transactions={filteredTransactions} onDelete={handleDelete} />
         )}
       </div>
     </div>
