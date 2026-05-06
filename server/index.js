@@ -4,8 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 
-const path = require('path');
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config();
 
 if (!process.env.JWT_SECRET) {
   console.warn('⚠️ WARNING: JWT_SECRET is not defined in .env file');
@@ -20,11 +19,11 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-const authRoutes = require('./routes/authRoutes');
-const moduleRoutes = require('./routes/moduleRoutes');
-const transactionRoutes = require('./routes/transactionRoutes');
-const canteenRoutes = require('./routes/canteenRoutes');
-const khataRoutes = require('./routes/khataRoutes');
+const authRoutes = require('./src/routes/authRoutes');
+const moduleRoutes = require('./src/routes/moduleRoutes');
+const transactionRoutes = require('./src/routes/transactionRoutes');
+const canteenRoutes = require('./src/routes/canteenRoutes');
+const khataRoutes = require('./src/routes/khataRoutes');
 
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/expenseflow';
