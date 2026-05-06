@@ -14,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:5173', credentials: true })); // Updated CORS for cookies
+app.use(cors({ origin: "https://expence-tracker-weld-five.vercel.app", credentials: true })); // Updated CORS for cookies
 app.use(express.json());
 app.use(cookieParser());
 
