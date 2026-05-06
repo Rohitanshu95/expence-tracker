@@ -26,6 +26,10 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const canteenRoutes = require('./routes/canteenRoutes');
 const khataRoutes = require('./routes/khataRoutes');
 
+app.get("/api/verify", (req, res) => {
+  res.send("Hello from Vercel!");
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/transactions', transactionRoutes);
