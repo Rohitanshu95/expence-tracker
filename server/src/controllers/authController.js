@@ -24,6 +24,23 @@ const register = async (req, res) => {
 
     await user.save();
 
+    // Create default modules for the new user
+    const Module = require('../models/Module');
+    const defaultModules = [
+      { name: 'Food', type: 'expense', icon: 'Utensils', color: '#ef4444' },
+      { name: 'Transport', type: 'expense', icon: 'Car', color: '#3b82f6' },
+      { name: 'Salary', type: 'income', icon: 'Wallet', color: '#10b981' },
+      { name: 'Shopping', type: 'expense', icon: 'ShoppingBag', color: '#f59e0b' },
+      { name: 'Housing', type: 'expense', icon: 'Home', color: '#6366f1' },
+      { name: 'Entertainment', type: 'expense', icon: 'Film', color: '#ec4899' },
+      { name: 'Health', type: 'expense', icon: 'Heart', color: '#f43f5e' },
+      { name: 'Utilities', type: 'expense', icon: 'Zap', color: '#eab308' },
+      { name: 'Investment', type: 'income', icon: 'TrendingUp', color: '#8b5cf6' },
+      { name: 'Other', type: 'expense', icon: 'Tag', color: '#94a3b8' }
+    ];
+    
+    await Module.insertMany(defaultModules.map(m => ({ ...m, user: user._id })));
+
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Something went wrong', error: error.message });

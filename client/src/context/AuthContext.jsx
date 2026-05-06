@@ -6,49 +6,69 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const checkUser = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/auth/me');
+      setUser(res.data);
+    } catch (err) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          // You might have a /me endpoint or similar
-          const res = await api.get('/auth/me');
-          setUser(res.data);
-        }
-      } catch (error) {
-        localStorage.removeItem('token');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
+    checkUser();
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
-    localStorage.setItem('token', res.data.token);
-    setUser(res.data.user);
-    return res.data;
+    try {
+      setError(null);
+      const res = await api.post('/auth/login', { email, password });
+      setUser(res.data.result);
+      return res.data;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Login failed';
+      setError(message);
+      throw new Error(message);
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const register = async (username, email, password) => {
+    try {
+      setError(null);
+      const res = await api.post('/auth/register', { username, email, password });
+      return res.data;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Registration failed';
+      setError(message);
+      throw new Error(message);
+    }
   };
 
-  const register = async (userData) => {
-    const res = await api.post('/auth/register', userData);
-    localStorage.setItem('token', res.data.token);
-    setUser(res.data.user);
-    return res.data;
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+      setUser(null);
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, loading, error, login, register, logout, checkUser }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

@@ -23,13 +23,26 @@ app.use(cookieParser());
 const authRoutes = require('./routes/authRoutes');
 const moduleRoutes = require('./routes/moduleRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/budget', budgetRoutes);
+
+app.get('/api/ping', (req, res) => res.json({ message: 'pong' }));
 
 app.get('/', (req, res) => {
   res.send('ExpenseFlow API is running (JS)...');
+});
+
+// 404 Handler for Debugging
+app.use((req, res) => {
+  console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ 
+    message: `Route ${req.method} ${req.originalUrl} not found`,
+    availableRoutes: ['/api/auth/login', '/api/auth/register', '/api/auth/me']
+  });
 });
 
 // Database Connection

@@ -2,21 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 
-const Login = () => {
+const Register = () => {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, error } = useAuth();
+  const [success, setSuccess] = useState(false);
+  const { register, error } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login(email, password);
-      navigate('/');
+      await register(username, email, password);
+      setSuccess(true);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
       // Error handled by context
     } finally {
@@ -55,10 +58,10 @@ const Login = () => {
             marginBottom: '1rem',
             color: 'var(--primary)'
           }}>
-            <LogIn size={32} />
+            <UserPlus size={32} />
           </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Welcome Back</h1>
-          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Login to manage your expenses</p>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Create Account</h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Start tracking your finances today</p>
         </div>
 
         {error && (
@@ -82,7 +85,43 @@ const Login = () => {
           </motion.div>
         )}
 
+        {success && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              padding: '0.75rem', 
+              background: 'rgba(16, 185, 129, 0.1)', 
+              color: 'var(--success)',
+              borderRadius: 'var(--radius)',
+              fontSize: '0.875rem',
+              marginBottom: '1.5rem'
+            }}
+          >
+            <CheckCircle size={18} />
+            Account created! Redirecting to login...
+          </motion.div>
+        )}
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Full Name</label>
+            <div style={{ position: 'relative' }}>
+              <User size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input 
+                type="text" 
+                required 
+                placeholder="John Doe"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                style={{ width: '100%', paddingLeft: '2.5rem' }}
+              />
+            </div>
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Email Address</label>
             <div style={{ position: 'relative' }}>
@@ -115,7 +154,7 @@ const Login = () => {
 
           <button 
             type="submit" 
-            disabled={isSubmitting}
+            disabled={isSubmitting || success}
             style={{ 
               background: 'var(--primary)', 
               color: 'white', 
@@ -128,16 +167,16 @@ const Login = () => {
               alignItems: 'center'
             }}
           >
-            {isSubmitting ? 'Authenticating...' : 'Sign In'}
+            {isSubmitting ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 
         <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-          Don't have an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600 }}>Sign Up</Link>
+          Already have an account? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Sign In</Link>
         </p>
       </motion.div>
     </div>
   );
 };
 
-export default Login;
+export default Register;
