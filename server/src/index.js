@@ -24,11 +24,13 @@ const authRoutes = require('./routes/authRoutes');
 const moduleRoutes = require('./routes/moduleRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const canteenRoutes = require('./routes/canteenRoutes');
+const khataRoutes = require('./routes/khataRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/canteen', canteenRoutes);
+app.use('/api/khata', khataRoutes);
 
 app.get('/api/ping', (req, res) => res.json({ message: 'pong' }));
 

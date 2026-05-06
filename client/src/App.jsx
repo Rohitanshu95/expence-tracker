@@ -13,6 +13,7 @@ import Analytics from './pages/Analytics';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import CanteenTracker from './pages/CanteenTracker';
+import Khata from './pages/Khata';
 
 import { SearchProvider } from './context/SearchContext';
 
@@ -36,6 +37,7 @@ function App() {
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/canteen" element={<CanteenTracker />} />
+              <Route path="/khata" element={<Khata />} />
             </Route>
           </Route>
 

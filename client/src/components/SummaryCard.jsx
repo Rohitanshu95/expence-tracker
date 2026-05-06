@@ -6,64 +6,68 @@ const SummaryCard = ({ title, amount, type, icon: Icon, trend }) => {
   const isIncome = type === 'income';
   const isBalance = type === 'balance';
   
+  const getThemeColor = () => {
+    if (isIncome) return '#10b981';
+    if (isBalance) return '#2563eb';
+    return '#ef4444';
+  };
+
+  const themeColor = getThemeColor();
+  
   return (
     <motion.div 
-      whileHover={{ y: -5 }}
-      className="glass glass-hover" 
+      whileHover={{ y: -4, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)' }}
       style={{ 
         padding: '1.5rem', 
-        borderRadius: 'var(--radius-lg)',
+        borderRadius: '16px',
         position: 'relative',
         overflow: 'hidden',
-        background: 'white'
+        background: '#ffffff',
+        border: '1px solid #f1f5f9',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+        transition: 'all 0.3s ease'
       }}
     >
-      {/* Background Accent Glow (Light Mode Optimized) */}
-      <div style={{
-        position: 'absolute',
-        top: '-20%',
-        right: '-10%',
-        width: '120px',
-        height: '120px',
-        background: isIncome ? 'var(--success)' : isBalance ? 'var(--primary)' : 'var(--error)',
-        filter: 'blur(70px)',
-        opacity: 0.1,
-        zIndex: 0
-      }} />
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', position: 'relative', zIndex: 1 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
         <div style={{ 
-          padding: '0.75rem', 
-          background: isIncome ? 'rgba(16, 185, 129, 0.1)' : isBalance ? 'rgba(99, 102, 241, 0.1)' : 'rgba(239, 68, 68, 0.1)', 
-          borderRadius: '12px',
-          color: isIncome ? 'var(--success)' : isBalance ? 'var(--primary)' : 'var(--error)',
-          border: '1px solid rgba(255,255,255,0.1)'
+          padding: '0.6rem', 
+          background: `${themeColor}15`, 
+          borderRadius: '10px',
+          color: themeColor,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}>
-          {Icon ? <Icon size={24} /> : <IndianRupee size={24} />}
+          {Icon ? <Icon size={20} /> : <IndianRupee size={20} />}
         </div>
-        {trend && (
+        {trend !== undefined && (
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '0.25rem', 
             fontSize: '0.75rem',
-            color: trend > 0 ? 'var(--success)' : 'var(--error)',
+            color: trend >= 0 ? '#10b981' : '#ef4444',
             fontWeight: 700,
-            background: trend > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-            padding: '0.25rem 0.6rem',
-            borderRadius: '20px'
+            padding: '0.25rem 0.5rem',
+            background: trend >= 0 ? '#f0fdf4' : '#fef2f2',
+            borderRadius: '6px'
           }}>
-            {trend > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            {trend >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             {Math.abs(trend)}%
           </div>
         )}
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{title}</p>
-        <h2 style={{ fontSize: '1.85rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-main)' }}>
-          ₹{amount?.toLocaleString('en-IN') || '0'}
-        </h2>
+      <div>
+        <p style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.4rem', letterSpacing: '0.01em' }}>{title}</p>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+          <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b' }}>₹{amount?.toLocaleString('en-IN') || '0'}</span>
+        </div>
+      </div>
+
+      {/* Decorative Progress Bar for depth */}
+      <div style={{ width: '100%', height: '4px', background: '#f1f5f9', borderRadius: '10px', marginTop: '1.25rem', overflow: 'hidden' }}>
+        <div style={{ width: '65%', height: '100%', background: themeColor, borderRadius: '10px', opacity: 0.6 }} />
       </div>
     </motion.div>
   );
