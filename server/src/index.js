@@ -26,6 +26,37 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const canteenRoutes = require('./routes/canteenRoutes');
 const khataRoutes = require('./routes/khataRoutes');
 
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/expenseflow';
+function connectDB() {
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      console.log('Connected to MongoDB');
+    })
+    .catch((error) => {
+      console.error('MongoDB connection error:', error);
+    });
+}
+
+let isConnected = false;
+
+const connectInServer = async () => {
+  try {
+    await connectDB();
+    console.log("Database connected successfully");
+    isConnected = true;
+  } catch (error) {
+    console.error("Database connection failed:", error);
+  }
+};
+
+app.use(async (req, res, next) => {
+  if (!isConnected) {
+    await connectInServer();
+  }
+  next();
+});
+
 app.get("/api/verify", (req, res) => {
   res.send("Hello from Vercel!");
 });
@@ -52,15 +83,6 @@ app.use((req, res) => {
 });
 
 // Database Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/expenseflow';
 
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error('MongoDB connection error:', error);
-  });
+
+export default app;
