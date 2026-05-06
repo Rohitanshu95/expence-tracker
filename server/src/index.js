@@ -85,4 +85,4 @@ app.use((req, res) => {
 // Database Connection
 
 
-export default app;
+module.exports = app;
