@@ -9,7 +9,7 @@
     "routes": [
         {
             "src": "/api/(.*)",
-            "dest": "/index.js",
+            "dest": "./index.js",
             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
             "headers": {
                 "Access-Control-Allow-Origin": "https://my-expence-tracckker.vercel.app",
@@ -20,7 +20,7 @@
         },
         {
             "src": "/(.*)",
-            "dest": "/index.js"
+            "dest": "./index.js"
         }
     ]
 }
