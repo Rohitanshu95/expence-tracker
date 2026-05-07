@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSearch } from '../context/SearchContext';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import Modal from './Modal';
 import Logo from './Logo';
@@ -10,9 +10,23 @@ import Logo from './Logo';
 const Header = () => {
   const { user } = useAuth();
   const { setSearchQuery } = useSearch();
+  const location = useLocation();
   const [hasNotification, setHasNotification] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const getPageTitle = () => {
+    switch (location.pathname) {
+      case '/': return 'ExpenseFlow';
+      case '/khata': return 'Friend Khata';
+      case '/canteen': return 'Canteen Tracker';
+      case '/analytics': return 'Visual Analytics';
+      case '/settings': return 'Settings';
+      case '/profile': return 'My Profile';
+      case '/history': return 'History';
+      default: return 'ExpenseFlow';
+    }
+  };
 
   useEffect(() => {
     const checkBudget = async () => {
@@ -65,7 +79,7 @@ const Header = () => {
       }}>
         <Logo size={28} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-          <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'white', letterSpacing: '-0.02em' }}>ExpenseFlow</span>
+          <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'white', letterSpacing: '-0.02em' }}>{getPageTitle()}</span>
         </div>
       </div>
 
@@ -106,7 +120,11 @@ const Header = () => {
             overflow: 'hidden'
           }}>
             {user?.avatar ? (
-              <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              user.avatar.startsWith('http') ? (
+                <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ fontSize: '1.25rem' }}>{user.avatar}</span>
+              )
             ) : (
               <span>{user?.username?.charAt(0).toUpperCase() || 'U'}</span>
             )}

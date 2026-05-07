@@ -98,31 +98,38 @@ const CanteenTracker = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem' }}>
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.25rem' }}>Canteen Tracker</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 500 }}>Manage your monthly meal pass.</p>
-          </div>
-          <button 
-            onClick={handleRenew}
-            disabled={actionLoading === 'renew'}
-            style={{ 
-              padding: '0.6rem', 
-              borderRadius: '12px', 
-              background: 'white', 
-              border: '1px solid #e2e8f0', 
-              color: '#64748b',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            title="Renew & Archive"
-          >
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.25rem' }}>Canteen Tracker</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 500 }}>Manage your monthly meal pass.</p>
+      </div>
+
+      {/* Renew Pass Card */}
+      <div className="premium-card" style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ padding: '10px', background: 'white', borderRadius: '12px', color: '#2563eb', border: '1px solid #e2e8f0' }}>
             <RefreshCw size={20} className={actionLoading === 'renew' ? 'spin' : ''} />
-          </button>
+          </div>
+          <div>
+            <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1e293b' }}>Renew Monthly Pass</h4>
+            <p style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500 }}>Archive current and start new month.</p>
+          </div>
         </div>
+        <button 
+          onClick={handleRenew}
+          disabled={actionLoading === 'renew'}
+          style={{ 
+            padding: '0.6rem 1rem', 
+            borderRadius: '12px', 
+            background: '#2563eb', 
+            color: 'white', 
+            border: 'none',
+            fontWeight: 800,
+            fontSize: '0.8rem',
+            cursor: 'pointer'
+          }}
+        >
+          Renew
+        </button>
       </div>
 
       <AnimatePresence mode="wait">

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Camera, Check, AlertCircle, ArrowLeft } from 'lucide-react';
+import { User, Mail, Lock, Camera, Check, AlertCircle, ArrowLeft, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   const [username, setUsername] = useState(user?.username || '');
@@ -82,11 +82,10 @@ const Profile = () => {
   };
 
   const avatars = [
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Milo',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Lilly',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Jack',
+    '😎', '🤓', '🤩', '🥳', '🤠', 
+    '😇', '🤡', '🤖', '👻', '👽', 
+    '🥷', '🦁', '🦊', '🦄', '🐲', 
+    '🚀', '💰', '💎', '🔥', '✨'
   ];
 
   return (
@@ -157,7 +156,11 @@ const Profile = () => {
                   boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
                 }}>
                   {avatar ? (
-                    <img src={avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    avatar.startsWith('http') ? (
+                      <img src={avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '3rem' }}>{avatar}</span>
+                    )
                   ) : (
                     <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white' }}>{username?.charAt(0).toUpperCase()}</span>
                   )}
@@ -174,16 +177,20 @@ const Profile = () => {
                     type="button"
                     onClick={() => setAvatar(av)}
                     style={{ 
-                      width: '32px', 
-                      height: '32px', 
-                      borderRadius: '50%', 
-                      border: avatar === av ? '2px solid var(--primary)' : '1px solid #e2e8f0',
+                      width: '40px', 
+                      height: '40px', 
+                      borderRadius: '12px', 
+                      border: avatar === av ? '2px solid var(--primary)' : '1px solid #f1f5f9',
                       padding: 0,
-                      overflow: 'hidden',
-                      cursor: 'pointer'
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      background: avatar === av ? '#eff6ff' : '#f8fafc',
+                      fontSize: '1.25rem'
                     }}
                   >
-                    <img src={av} style={{ width: '100%', height: '100%' }} />
+                    {av}
                   </button>
                 ))}
               </div>
@@ -280,6 +287,40 @@ const Profile = () => {
           </form>
         </motion.div>
       </div>
+
+      {/* Logout Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        style={{ marginTop: '1rem' }}
+      >
+        <button 
+          onClick={logout}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            width: '100%',
+            padding: '1rem',
+            background: '#fef2f2',
+            border: '1px solid #fee2e2',
+            borderRadius: '20px',
+            color: '#ef4444',
+            fontSize: '1rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.05)'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+          onMouseLeave={(e) => e.currentTarget.style.background = '#fef2f2'}
+        >
+          <LogOut size={20} />
+          Sign Out of ExpenseFlow
+        </button>
+      </motion.div>
     </div>
   );
 };

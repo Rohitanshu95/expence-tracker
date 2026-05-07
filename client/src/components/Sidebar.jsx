@@ -11,8 +11,6 @@ import {
   X,
   BookOpen,
   Activity,
-  UtensilsCrossed,
-  LogOut,
   ChevronRight
 } from 'lucide-react';
 import Logo from './Logo';
@@ -100,30 +98,6 @@ const Sidebar = ({ isOpen, onClose, onAddTransaction }) => {
           ))}
         </div>
       </nav>
-
-      <div style={{ paddingTop: '0.5rem' }}>
-        <button 
-          onClick={logout}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.75rem',
-            width: '100%',
-            padding: '1rem',
-            background: '#fef2f2',
-            border: '1px solid #fee2e2',
-            borderRadius: '18px',
-            color: '#ef4444',
-            fontSize: '0.95rem',
-            fontWeight: 800,
-            cursor: 'pointer'
-          }}
-        >
-          <LogOut size={20} />
-          Sign Out
-        </button>
-      </div>
     </div>
   );
 
