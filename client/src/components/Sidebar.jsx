@@ -11,7 +11,8 @@ import {
   X,
   BookOpen,
   Activity,
-  ChevronRight
+  ChevronRight,
+  UtensilsCrossed
 } from 'lucide-react';
 import Logo from './Logo';
 
