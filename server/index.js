@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 const baseFrontendUrl = process.env.NODE_ENV === "development" ? "http://localhost:5173" : "https://my-expence-tracckker.vercel.app";
 
 // Middleware
-app.use(cors({ origin: baseFrontendUrl, credentials: true })); // Updated CORS for cookies
+app.use(cors({ origin: "https://my-expence-tracckker.vercel.app", credentials: true })); // Updated CORS for cookies
 app.use(express.json());
 app.use(cookieParser());
 // app.use(morgan('dev'));
