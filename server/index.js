@@ -17,7 +17,25 @@ const PORT = process.env.PORT || 5000;
 const baseFrontendUrl = process.env.NODE_ENV === "development" ? "http://localhost:5173" : "https://my-expence-tracckker.vercel.app";
 
 // Middleware
-app.use(cors({ origin: "https://my-expence-tracckker.vercel.app", credentials: true })); // Updated CORS for cookies
+const allowedOrigins = ["https://my-expence-tracckker.vercel.app"];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+// Explicitly handle preflight OPTIONS requests
+app.options("*", cors());
+
 app.use(express.json());
 app.use(cookieParser());
 // app.use(morgan('dev'));
