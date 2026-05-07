@@ -1,16 +1,50 @@
-import React from 'react';
-import { Search, Bell, MessageSquare, Menu } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Bell, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSearch } from '../context/SearchContext';
+import { Link } from 'react-router-dom';
+import api from '../utils/api';
+import Modal from './Modal';
 
 const Header = () => {
   const { user } = useAuth();
   const { searchQuery, setSearchQuery } = useSearch();
+  const [hasNotification, setHasNotification] = useState(false);
+  const [notificationMsg, setNotificationMsg] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const today = new Date().toLocaleDateString('en-IN', { 
     weekday: 'long', 
     month: 'short', 
     day: 'numeric' 
   });
+
+  useEffect(() => {
+    const checkBudget = async () => {
+      try {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        
+        const res = await api.get('/transactions/summary', { 
+          params: { startDate: startOfMonth, endDate: endOfMonth } 
+        });
+        
+        if (res.data.totalExpense > res.data.totalIncome) {
+          setHasNotification(true);
+          setNotificationMsg(`Your total expenses (₹${res.data.totalExpense.toLocaleString('en-IN')}) have exceeded your total income (₹${res.data.totalIncome.toLocaleString('en-IN')}) for this month. Please review your spending!`);
+        } else {
+          setHasNotification(false);
+        }
+      } catch (err) {
+        console.error("Failed to fetch notification data", err);
+      }
+    };
+
+    if (user) {
+      checkBudget();
+    }
+  }, [user]);
 
   return (
     <header style={{
@@ -43,8 +77,26 @@ const Header = () => {
         />
       </div>
 
-      {/* Spacing for mobile toggle */}
-      <div style={{ width: '45px' }} className="show-mobile" />
+      {/* Mobile Toggle Button */}
+      <button 
+        className="show-mobile"
+        onClick={() => {
+          const event = new CustomEvent('toggleSidebar');
+          window.dispatchEvent(event);
+        }}
+        style={{
+          background: 'white',
+          border: '1px solid #e2e8f0',
+          padding: '0.6rem',
+          borderRadius: '12px',
+          cursor: 'pointer',
+          color: 'var(--primary)',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}
+      >
+        <Menu size={24} />
+      </button>
+
 
       {/* Date and User Info */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
@@ -54,12 +106,18 @@ const Header = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', borderLeft: '1px solid #f1f5f9', paddingLeft: '1.5rem' }}>
-          <button style={{ color: '#64748b', position: 'relative', background: '#f8fafc', border: '1px solid #e2e8f0', cursor: 'pointer', padding: '0.6rem', borderRadius: '10px' }}>
+          <button 
+            title={hasNotification ? "View Alert" : "No notifications"}
+            onClick={() => setIsModalOpen(true)}
+            style={{ color: '#64748b', position: 'relative', background: '#f8fafc', border: '1px solid #e2e8f0', cursor: 'pointer', padding: '0.6rem', borderRadius: '10px' }}
+          >
             <Bell size={20} />
-            <span style={{ position: 'absolute', top: '10px', right: '10px', width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%' }} />
+            {hasNotification && (
+              <span style={{ position: 'absolute', top: '10px', right: '10px', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', border: '2px solid white' }} />
+            )}
           </button>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', cursor: 'pointer' }}>
             <div className="hide-mobile" style={{ textAlign: 'right' }}>
               <p style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1e293b' }}>{user?.username || 'User'}</p>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#10b981' }}>Premium Account</p>
@@ -76,13 +134,27 @@ const Header = () => {
               fontWeight: 800,
               fontSize: '1rem',
               boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
-              border: '2px solid white'
+              border: '2px solid white',
+              overflow: 'hidden'
             }}>
-              {user?.username?.charAt(0).toUpperCase() || 'U'}
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user?.username?.charAt(0).toUpperCase() || 'U'
+              )}
             </div>
-          </div>
+          </Link>
         </div>
       </div>
+
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        title={hasNotification ? "Budget Alert!" : "No Notifications"}
+        message={hasNotification ? notificationMsg : "You're all caught up! Your budget is looking healthy and no new alerts are pending. Keep it up! ✅"}
+        type={hasNotification ? "danger" : "success"}
+        confirmText="Got it!"
+      />
     </header>
   );
 };

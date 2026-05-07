@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import AddTransactionModal from './AddTransactionModal';
 import { motion } from 'framer-motion';
-import { Menu } from 'lucide-react';
 
 const Layout = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleToggle = () => setIsSidebarOpen(prev => !prev);
+    window.addEventListener('toggleSidebar', handleToggle);
+    return () => window.removeEventListener('toggleSidebar', handleToggle);
+  }, []);
 
   const handleRefresh = () => {
     window.location.reload();
@@ -16,28 +21,6 @@ const Layout = () => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
-      {/* Mobile Toggle */}
-      {!isSidebarOpen && (
-        <button 
-          onClick={() => setIsSidebarOpen(true)}
-          className="show-mobile"
-          style={{
-            position: 'fixed',
-            top: '1.25rem',
-            left: '1rem',
-            zIndex: 100,
-            background: 'white',
-            border: '1px solid var(--border)',
-            padding: '0.6rem',
-            borderRadius: '12px',
-            boxShadow: 'var(--shadow)',
-            cursor: 'pointer'
-          }}
-        >
-          <Menu size={24} color="var(--primary)" />
-        </button>
-      )}
-
       {/* Sidebar - Handles both Desktop and Mobile Drawer */}
       <Sidebar 
         isOpen={isSidebarOpen} 
@@ -59,9 +42,11 @@ const Layout = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           style={{ maxWidth: '1400px', margin: '0 auto' }}
+          className="mobile-container-wrapper"
         >
           <Outlet />
         </motion.div>
+
       </main>
 
       <AddTransactionModal 

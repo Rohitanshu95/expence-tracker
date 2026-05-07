@@ -16,6 +16,7 @@ import {
   Activity,
   UtensilsCrossed
 } from 'lucide-react';
+import Logo from './Logo';
 
 const Sidebar = ({ isOpen, onClose, onAddTransaction }) => {
   const { logout } = useAuth();
@@ -47,17 +48,7 @@ const Sidebar = ({ isOpen, onClose, onAddTransaction }) => {
       {/* Header / Logo */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', padding: '0 0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ 
-            background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)', 
-            padding: '0.5rem', 
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 8px 16px rgba(37, 99, 235, 0.2)'
-          }}>
-            <Activity size={24} color="white" />
-          </div>
+          <Logo size={40} />
           <span style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>ExpenseFlow</span>
         </div>
         <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex' }} className="show-mobile">

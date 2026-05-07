@@ -53,17 +53,23 @@ export const AuthProvider = ({ children }) => {
     try {
       await api.post('/auth/logout');
       setUser(null);
+      // Force redirect to login page after logout
+      window.location.href = '/login';
     } catch (err) {
       console.error('Logout failed', err);
+      // Even if API fails, clear local user and redirect
+      setUser(null);
+      window.location.href = '/login';
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout, checkUser }}>
+    <AuthContext.Provider value={{ user, setUser, loading, error, login, register, logout, checkUser }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

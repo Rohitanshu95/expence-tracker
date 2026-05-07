@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, Download, Filter, Calendar, Lock, ShieldCheck, 
-  ArrowLeft, Search, CheckCircle2, AlertCircle, X, IndianRupee
+  ArrowLeft, Search, CheckCircle2, AlertCircle, X, IndianRupee, ChevronDown
 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import TransactionTable from '../components/TransactionTable';
@@ -204,26 +204,42 @@ const Reports = () => {
             <h3 style={{ fontWeight: 800 }}>Record Summary</h3>
           </div>
           
-          <div style={{ display: 'flex', gap: '0.5rem', background: '#f8fafc', padding: '0.4rem', borderRadius: '12px' }}>
-            {['daily', 'weekly', 'monthly', 'all'].map((p) => (
-              <button
-                key={p}
-                onClick={() => setFilterPeriod(p)}
-                style={{
-                  padding: '0.5rem 1.25rem',
-                  borderRadius: '8px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  textTransform: 'capitalize',
-                  background: filterPeriod === p ? 'white' : 'transparent',
-                  color: filterPeriod === p ? 'var(--primary)' : 'var(--text-muted)',
-                  boxShadow: filterPeriod === p ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                }}
-              >
-                {p}
-              </button>
-            ))}
+          <div style={{ position: 'relative' }}>
+            <select
+              value={filterPeriod}
+              onChange={(e) => setFilterPeriod(e.target.value)}
+              style={{
+                padding: '0.6rem 2.5rem 0.6rem 1.25rem',
+                borderRadius: '12px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                textTransform: 'capitalize',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                color: 'var(--primary)',
+                cursor: 'pointer',
+                appearance: 'none',
+                outline: 'none',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              }}
+            >
+              {['daily', 'weekly', 'monthly', 'all'].map((p) => (
+                <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+              ))}
+            </select>
+            <ChevronDown 
+              size={16} 
+              style={{ 
+                position: 'absolute', 
+                right: '1rem', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                pointerEvents: 'none',
+                color: 'var(--text-muted)'
+              }} 
+            />
           </div>
+
         </div>
 
         {loading ? (

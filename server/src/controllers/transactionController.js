@@ -4,6 +4,26 @@ const Transaction = require('../models/Transaction');
 const addTransaction = async (req, res) => {
   try {
     console.log("Incoming Transaction Request:", req.body);
+    
+    if (Array.isArray(req.body)) {
+      const transactions = req.body.map(t => ({
+        ...t,
+        date: t.date || Date.now(),
+        user: req.userId,
+        module: t.moduleId // Map moduleId to module field
+      }));
+
+      // Validation for all transactions in array
+      for (const t of transactions) {
+        if (!t.amount || !t.type || !t.module) {
+          return res.status(400).json({ message: "Each transaction must have amount, type, and moduleId." });
+        }
+      }
+
+      const newTransactions = await Transaction.insertMany(transactions);
+      return res.status(201).json(newTransactions);
+    }
+
     const { amount, date, note, type, moduleId } = req.body;
     
     // Basic validation
@@ -28,11 +48,25 @@ const addTransaction = async (req, res) => {
   }
 };
 
+
 const getTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find({ user: req.userId })
+    const { startDate, endDate } = req.query;
+    let query = { user: req.userId };
+    
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    }
+
+    const transactions = await Transaction.find(query)
       .populate('module')
-      .sort({ date: -1 }); // Newest first
+      .sort({ date: -1 });
     res.status(200).json(transactions);
   } catch (error) {
     res.status(500).json({ message: "Error fetching transactions", error: error.message });
@@ -51,25 +85,44 @@ const deleteTransaction = async (req, res) => {
 
 const getSummary = async (req, res) => {
   try {
-    const transactions = await Transaction.find({ user: req.userId });
-    
-    const summary = transactions.reduce((acc, curr) => {
-      if (curr.type === 'income') {
-        acc.income += curr.amount;
-      } else {
-        acc.expense += curr.amount;
+    const { startDate, endDate } = req.query;
+    let filter = { user: new mongoose.Types.ObjectId(req.userId) };
+
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.date.$lte = end;
       }
-      return acc;
-    }, { income: 0, expense: 0 });
+    }
 
-    const balance = summary.income - summary.expense;
+    // Use aggregation for summary to be more efficient with filters
+    const summaryData = await Transaction.aggregate([
+      { $match: filter },
+      { $group: {
+          _id: null,
+          totalIncome: { $sum: { $cond: [{ $eq: ["$type", "income"] }, "$amount", 0] } },
+          totalExpense: { $sum: { $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0] } }
+      }}
+    ]);
 
-    // Get last 7 days for chart
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const result = summaryData[0] || { totalIncome: 0, totalExpense: 0 };
+    const balance = result.totalIncome - result.totalExpense;
+
+    // Chart data (keep 7 days or use range)
+    let chartFilter = { user: new mongoose.Types.ObjectId(req.userId) };
+    if (startDate || endDate) {
+        chartFilter.date = filter.date;
+    } else {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        chartFilter.date = { $gte: sevenDaysAgo };
+    }
     
     const chartData = await Transaction.aggregate([
-      { $match: { user: new mongoose.Types.ObjectId(req.userId), date: { $gte: sevenDaysAgo } } },
+      { $match: chartFilter },
       { $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
           income: { $sum: { $cond: [{ $eq: ["$type", "income"] }, "$amount", 0] } },
@@ -78,17 +131,44 @@ const getSummary = async (req, res) => {
       { $sort: { "_id": 1 } }
     ]);
 
+    // Category breakdown
+    const categoryFilter = { ...filter, type: 'expense' };
+    const categoryData = await Transaction.aggregate([
+      { $match: categoryFilter },
+      { $group: {
+          _id: "$module",
+          total: { $sum: "$amount" }
+      }},
+      { $lookup: {
+          from: "modules",
+          localField: "_id",
+          foreignField: "_id",
+          as: "moduleInfo"
+      }},
+      { $unwind: "$moduleInfo" },
+      { $project: {
+          name: "$moduleInfo.name",
+          color: "$moduleInfo.color",
+          icon: "$moduleInfo.icon",
+          total: 1
+      }},
+      { $sort: { total: -1 } }
+    ]);
+
     res.status(200).json({
       totalBalance: balance,
-      totalIncome: summary.income,
-      totalExpense: summary.expense,
+      totalIncome: result.totalIncome,
+      totalExpense: result.totalExpense,
       chartData: chartData.map(d => ({
         date: d._id,
         income: d.income,
         expense: d.expense
-      }))
+      })),
+      categoryData: categoryData
     });
+
   } catch (error) {
+    console.error("Summary Error:", error);
     res.status(500).json({ message: "Error fetching summary", error: error.message });
   }
 };

@@ -9,6 +9,7 @@ import api from '../utils/api';
 const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
   const navigate = useNavigate();
   const [modules, setModules] = useState([]);
+  const [stagedTransactions, setStagedTransactions] = useState([]);
   const [formData, setFormData] = useState({
     amount: '',
     type: 'expense',
@@ -34,11 +35,13 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
         }
       };
       fetchModules();
+      // Reset staged transactions when opening
+      setStagedTransactions([]);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    if (modules.length > 0) {
+    if (modules.length > 0 && !formData.moduleId) {
       if (formData.type === 'income') {
         const inc = modules.find(m => m.type === 'income');
         if (inc) setFormData(prev => ({ ...prev, moduleId: inc._id }));
@@ -49,12 +52,10 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
     }
   }, [formData.type, modules]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const processCurrentTransaction = () => {
     const amountNum = parseFloat(formData.amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      alert('Please enter a valid amount greater than 0');
-      return;
+      return null;
     }
 
     const otherModule = modules.find(m => m.name === 'Other');
@@ -73,10 +74,58 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
       }
     }
 
+    return { 
+      ...formData, 
+      moduleId: actualModuleId, 
+      amount: amountNum, 
+      note: finalNote,
+      categoryName: formData.type === 'income' ? 'Income' : (modules.find(m => m._id === actualModuleId)?.name || 'Other')
+    };
+  };
+
+  const handleAddMore = () => {
+    const processed = processCurrentTransaction();
+    if (!processed) {
+      alert('Please enter a valid amount');
+      return;
+    }
+    setStagedTransactions([...stagedTransactions, processed]);
+    setFormData({
+      ...formData,
+      amount: '',
+      note: '',
+      otherDetail: '',
+      // Keep date and type for convenience
+    });
+  };
+
+  const handleRemoveStaged = (index) => {
+    setStagedTransactions(stagedTransactions.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    let finalPayload = [...stagedTransactions];
+    
+    // If form has data but not added to list, add it now
+    if (formData.amount) {
+      const processed = processCurrentTransaction();
+      if (processed) {
+        finalPayload.push(processed);
+      }
+    }
+
+    if (finalPayload.length === 0) {
+      alert('Please add at least one transaction');
+      return;
+    }
+
     setIsSubmitting(true);
-    const payload = { ...formData, moduleId: actualModuleId, amount: amountNum, note: finalNote };
 
     try {
+      // If only one, send as object, else as array
+      const payload = finalPayload.length === 1 ? finalPayload[0] : finalPayload;
       await api.post('/transactions', payload);
       onRefresh();
       onClose();
@@ -88,6 +137,7 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
         otherDetail: '',
         date: new Date().toISOString().split('T')[0]
       });
+      setStagedTransactions([]);
     } catch (err) {
       console.error('Error adding transaction', err);
       alert(err.response?.data?.message || 'Failed to add transaction.');
@@ -125,8 +175,10 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
             className="glass"
             style={{
               width: '100%',
-              maxWidth: '500px',
-              padding: '2.5rem',
+              maxWidth: '550px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '2rem',
               borderRadius: 'var(--radius-xl)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
               position: 'relative',
@@ -140,80 +192,102 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
               <X size={24} />
             </button>
 
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.5rem' }}>Add Transaction</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Fill in the details below to track your finance.</p>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.25rem' }}>Add Transactions</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Add one or multiple entries for the day.</p>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {stagedTransactions.length > 0 && (
+              <div style={{ marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Staged Items ({stagedTransactions.length})</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {stagedTransactions.map((tx, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                      <div>
+                        <span style={{ fontWeight: 700, color: tx.type === 'expense' ? 'var(--error)' : 'var(--success)', marginRight: '0.5rem' }}>
+                          ₹{tx.amount}
+                        </span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>{tx.categoryName}</span>
+                        {tx.note && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>• {tx.note}</span>}
+                      </div>
+                      <button onClick={() => handleRemoveStaged(idx)} style={{ color: 'var(--error)', padding: '2px' }}>
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Type Switcher */}
               <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.4rem', borderRadius: 'var(--radius-lg)' }}>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, type: 'expense' })}
                   style={{
-                    flex: 1, padding: '0.75rem', borderRadius: 'var(--radius)',
+                    flex: 1, padding: '0.6rem', borderRadius: 'var(--radius)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                    fontSize: '0.9rem', fontWeight: 700,
+                    fontSize: '0.85rem', fontWeight: 700,
                     background: formData.type === 'expense' ? 'white' : 'transparent',
                     color: formData.type === 'expense' ? 'var(--error)' : 'var(--text-muted)',
                     boxShadow: formData.type === 'expense' ? '0 4px 6px rgba(0,0,0,0.05)' : 'none',
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <ArrowDownCircle size={18} />
+                  <ArrowDownCircle size={16} />
                   Expense
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, type: 'income' })}
                   style={{
-                    flex: 1, padding: '0.75rem', borderRadius: 'var(--radius)',
+                    flex: 1, padding: '0.6rem', borderRadius: 'var(--radius)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                    fontSize: '0.9rem', fontWeight: 700,
+                    fontSize: '0.85rem', fontWeight: 700,
                     background: formData.type === 'income' ? 'white' : 'transparent',
                     color: formData.type === 'income' ? 'var(--success)' : 'var(--text-muted)',
                     boxShadow: formData.type === 'income' ? '0 4px 6px rgba(0,0,0,0.05)' : 'none',
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <ArrowUpCircle size={18} />
+                  <ArrowUpCircle size={16} />
                   Income
                 </button>
               </div>
 
               {/* Amount Input */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>Amount</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>Amount</label>
                 <div style={{ position: 'relative' }}>
                   <div style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: 'var(--text-muted)' }}>₹</div>
                   <input
-                    type="number" step="0.01" required placeholder="0.00"
+                    type="number" step="0.01" placeholder="0.00"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    style={{ width: '100%', padding: '0.875rem 1rem 0.875rem 2.5rem', fontSize: '1.25rem', fontWeight: 800, border: '2px solid #f1f5f9', background: '#f8fafc' }}
+                    style={{ width: '100%', padding: '0.75rem 1rem 0.75rem 2.25rem', fontSize: '1.1rem', fontWeight: 800, border: '2px solid #f1f5f9', background: '#f8fafc', borderRadius: '12px' }}
                   />
                 </div>
               </div>
 
               {/* Category / Source */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>
                   {formData.type === 'income' ? 'Source of Income' : 'Category'}
                 </label>
                 <div style={{ position: 'relative' }}>
                   {formData.type === 'income' ? (
                     <input
-                      type="text" required placeholder="e.g. Freelance, Salary"
+                      type="text" placeholder="e.g. Freelance, Salary"
                       value={formData.otherDetail}
                       onChange={(e) => setFormData({ ...formData, otherDetail: e.target.value })}
-                      style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.875rem 1rem', borderRadius: '12px' }}
+                      style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '12px' }}
                     />
                   ) : (
                     <select
-                      required value={formData.moduleId}
+                      value={formData.moduleId}
                       onChange={(e) => setFormData({ ...formData, moduleId: e.target.value })}
-                      style={{ width: '100%', padding: '0.875rem 1rem', border: '2px solid #f1f5f9', background: '#f8fafc', fontWeight: 600, borderRadius: '12px' }}
+                      style={{ width: '100%', padding: '0.75rem 1rem', border: '2px solid #f1f5f9', background: '#f8fafc', fontWeight: 600, borderRadius: '12px' }}
                     >
                       <option value="" disabled>Select a category</option>
                       {modules.filter(m => m.type === 'expense').map(m => (
@@ -224,20 +298,20 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
                   )}
                 </div>
                 {formData.type === 'expense' && (formData.moduleId === 'other_special' || modules.find(m => m._id === formData.moduleId)?.name === 'Other') && (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '0.5rem' }}>
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '0.4rem' }}>
                     <input
-                      type="text" required placeholder="Specify other category"
+                      type="text" placeholder="Specify other category"
                       value={formData.otherDetail}
                       onChange={(e) => setFormData({ ...formData, otherDetail: e.target.value })}
-                      style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.875rem 1rem', borderRadius: '12px' }}
+                      style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '12px' }}
                     />
                   </motion.div>
                 )}
               </div>
 
               <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>Date</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>Date</label>
                   <DatePicker
                     selected={new Date(formData.date)}
                     onChange={(date) => setFormData({ ...formData, date: date.toISOString().split('T')[0] })}
@@ -246,24 +320,40 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
                     wrapperClassName="datepicker-wrapper"
                   />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>Note</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>Note</label>
                   <input
                     type="text" placeholder="Short note"
                     value={formData.note}
                     onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                    style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.875rem 1rem', borderRadius: '12px' }}
+                    style={{ width: '100%', border: '2px solid #f1f5f9', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '12px' }}
                   />
                 </div>
               </div>
 
-              <button
-                type="submit" disabled={isSubmitting}
-                className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1rem' }}
-              >
-                {isSubmitting ? 'Processing...' : 'Save Transaction'}
-              </button>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={handleAddMore}
+                  style={{ 
+                    flex: 1, padding: '0.875rem', borderRadius: '12px', border: '2px solid #e2e8f0',
+                    background: 'white', color: 'var(--text-main)', fontWeight: 700, fontSize: '0.9rem',
+                    cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+                  }}
+                  onMouseEnter={(e) => e.target.style.borderColor = 'var(--primary)'}
+                  onMouseLeave={(e) => e.target.style.borderColor = '#e2e8f0'}
+                >
+                  <Tag size={18} />
+                  Add More
+                </button>
+                <button
+                  type="submit" disabled={isSubmitting}
+                  className="btn-primary"
+                  style={{ flex: 1.5, justifyContent: 'center', padding: '0.875rem', fontSize: '1rem', borderRadius: '12px' }}
+                >
+                  {isSubmitting ? 'Saving...' : (stagedTransactions.length > 0 ? `Save All (${stagedTransactions.length + (formData.amount ? 1 : 0)})` : 'Save Transaction')}
+                </button>
+              </div>
             </form>
           </motion.div>
         </div>
@@ -271,5 +361,6 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
     </AnimatePresence>
   );
 };
+
 
 export default AddTransactionModal;

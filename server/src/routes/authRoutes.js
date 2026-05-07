@@ -8,8 +8,8 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
 router.get('/me', auth, getMe);
-router.put('/profile', auth, updateProfile);
-router.put('/change-password', auth, changePassword);
+router.patch('/profile', auth, updateProfile);
+router.post('/change-password', auth, changePassword);
 router.post('/verify-password', auth, verifyPassword);
 
 module.exports = router;
