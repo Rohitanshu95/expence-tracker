@@ -75,11 +75,11 @@ const login = async (req, res) => {
     // Set cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false, // Only true in production
-      // sameSite: "none", // 'none' requires 'secure'
+      secure: true, // Only true in production
+      sameSite: "none", // 'none' requires 'secure'
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     }); 
-    console.log(res.cookie)
+    // console.log(res.cookie)
     res.status(200).json({ result: { id: user._id, username: user.username, email: user.email } });
   } catch (error) {
     res.status(500).json({ message: 'Something went wrong', error: error.message });
