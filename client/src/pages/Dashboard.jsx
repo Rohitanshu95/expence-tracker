@@ -20,6 +20,13 @@ const Dashboard = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showPicker, setShowPicker] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -177,7 +184,9 @@ const Dashboard = () => {
               style={{ 
                 position: 'absolute', 
                 top: '100%', 
-                right: 0, 
+                right: isMobile ? 'auto' : 0,
+                left: isMobile ? '-50%' : 'auto',
+                transform: isMobile ? 'translateX(25%)' : 'none',
                 marginTop: '0.5rem', 
                 background: 'white', 
                 padding: '1.25rem', 
@@ -185,7 +194,8 @@ const Dashboard = () => {
                 boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
                 border: '1px solid #e2e8f0',
                 zIndex: 100,
-                width: '300px'
+                width: isMobile ? 'calc(100vw - 2rem)' : '300px',
+                maxWidth: '300px'
               }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

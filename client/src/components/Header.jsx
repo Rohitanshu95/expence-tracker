@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu } from 'lucide-react';
+import { Search, Bell, Menu, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSearch } from '../context/SearchContext';
 import { Link } from 'react-router-dom';
 import api from '../utils/api';
 import Modal from './Modal';
+import Logo from './Logo';
 
 const Header = () => {
   const { user } = useAuth();
@@ -56,6 +57,41 @@ const Header = () => {
       gap: '1rem',
       borderBottom: '1px solid #f1f5f9'
     }}>
+      {/* Mobile Toggle Button */}
+      <button 
+        className="show-mobile"
+        onClick={() => {
+          const event = new CustomEvent('toggleSidebar');
+          window.dispatchEvent(event);
+        }}
+        style={{
+          background: 'white',
+          border: '1px solid #e2e8f0',
+          padding: '0.6rem',
+          borderRadius: '12px',
+          cursor: 'pointer',
+          color: 'var(--primary)',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}
+      >
+        <Menu size={24} />
+      </button>
+
+      {/* Mobile App Branding (Visible only on mobile) */}
+      <div className="show-mobile" style={{ 
+        flex: 1, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        gap: '0.5rem'
+      }}>
+        <Logo size={24} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <span style={{ fontWeight: 800, fontSize: '1rem', color: '#1e293b' }}>ExpenseFlow</span>
+          <ChevronDown size={14} color="#64748b" />
+        </div>
+      </div>
+
       {/* Search Bar - Hidden on small mobile, condensed on tablet */}
       <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }} className="hide-mobile">
         <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -76,26 +112,6 @@ const Header = () => {
           }}
         />
       </div>
-
-      {/* Mobile Toggle Button */}
-      <button 
-        className="show-mobile"
-        onClick={() => {
-          const event = new CustomEvent('toggleSidebar');
-          window.dispatchEvent(event);
-        }}
-        style={{
-          background: 'white',
-          border: '1px solid #e2e8f0',
-          padding: '0.6rem',
-          borderRadius: '12px',
-          cursor: 'pointer',
-          color: 'var(--primary)',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-        }}
-      >
-        <Menu size={24} />
-      </button>
 
 
       {/* Date and User Info */}
