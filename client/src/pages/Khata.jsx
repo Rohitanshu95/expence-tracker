@@ -15,7 +15,13 @@ import {
   Clock,
   ArrowLeft,
   BookOpen,
-  ChevronDown
+  ChevronDown,
+  Phone,
+  MessageCircle,
+  MoreVertical,
+  Filter,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import api from '../utils/api';
 import { useSearch } from '../context/SearchContext';
@@ -29,9 +35,8 @@ const Khata = () => {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [newTx, setNewTx] = useState({ type: 'gave', amount: '', description: '' });
   const [actionLoading, setActionLoading] = useState(false);
-  const [filter, setFilter] = useState('all'); // 'all', 'get', 'give'
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-
+  const [filter, setFilter] = useState('all'); 
+  
   const [newParty, setNewParty] = useState({
     personName: '',
     phoneNumber: '',
@@ -41,13 +46,6 @@ const Khata = () => {
     gstin: '',
     address: ''
   });
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchKhatas = async () => {
     try {
@@ -107,7 +105,7 @@ const Khata = () => {
   };
 
   const handleDeletePerson = async (id, e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     if (!window.confirm('Are you sure? All transaction history for this person will be deleted.')) return;
     try {
       await api.delete(`/khata/${id}`);
@@ -115,17 +113,6 @@ const Khata = () => {
       fetchKhatas();
     } catch (err) {
       console.error('Error deleting person', err);
-    }
-  };
-
-  const handleDeleteTransaction = async (txId) => {
-    if (!window.confirm('Delete this entry?')) return;
-    try {
-      const res = await api.delete(`/khata/${selectedKhata._id}/transaction/${txId}`);
-      setSelectedKhata(res.data);
-      fetchKhatas();
-    } catch (err) {
-      console.error('Error deleting transaction', err);
     }
   };
 
@@ -142,7 +129,6 @@ const Khata = () => {
   const totalToGet = khatas.filter(k => k.netBalance > 0).reduce((sum, k) => sum + k.netBalance, 0);
   const totalToGive = Math.abs(khatas.filter(k => k.netBalance < 0).reduce((sum, k) => sum + k.netBalance, 0));
 
-  // Helper to group transactions by date
   const groupedTransactions = useMemo(() => {
     if (!selectedKhata) return [];
     const groups = {};
@@ -155,332 +141,300 @@ const Khata = () => {
   }, [selectedKhata]);
 
   return (
-    <div style={{ height: isMobile ? 'auto' : 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '1rem' }}>
-      {/* Top Bar - Summary */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '1.5rem', flex: 1 }}>
-          <div style={{ display: 'flex', flex: 1, alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', minWidth: '140px' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>GIVE:</span>
-            <span style={{ fontWeight: 900, color: '#ef4444', fontSize: '1rem' }}>₹{totalToGive.toLocaleString('en-IN')}</span>
-          </div>
-          <div style={{ display: 'flex', flex: 1, alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', minWidth: '140px' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>GET:</span>
-            <span style={{ fontWeight: 900, color: '#10b981', fontSize: '1rem' }}>₹{totalToGet.toLocaleString('en-IN')}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '2rem' }}>
+      
+      {/* Header & Summary */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.25rem' }}>Friend Khata</h1>
+            <p style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Track money you give or get from friends.</p>
           </div>
         </div>
-        <button 
-          onClick={() => setShowAddPerson(true)}
-          style={{ padding: '0.6rem 1rem', borderRadius: '8px', background: '#2563eb', color: 'white', border: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}
-        >
-          <UserPlus size={18} />
-          {isMobile ? 'ADD' : 'ADD CUSTOMER'}
-        </button>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+          <div className="premium-card" style={{ padding: '1rem', borderLeft: '4px solid #ef4444' }}>
+            <p style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.25rem' }}>You'll Give</p>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#ef4444' }}>₹{totalToGive.toLocaleString('en-IN')}</h3>
+          </div>
+          <div className="premium-card" style={{ padding: '1rem', borderLeft: '4px solid #10b981' }}>
+            <p style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.25rem' }}>You'll Get</p>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#10b981' }}>₹{totalToGet.toLocaleString('en-IN')}</h3>
+          </div>
+        </div>
       </div>
 
-      <div style={{ 
-        flex: 1, 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : '400px 1fr', 
-        gap: '1px', 
-        background: '#e2e8f0', 
-        borderRadius: '12px', 
-        overflow: 'hidden', 
-        border: '1px solid #e2e8f0',
-        minHeight: isMobile ? '500px' : '0'
-      }}>
-        {/* Left Side: Customers List */}
-        {(!isMobile || !selectedKhata) && (
-          <div style={{ background: 'white', display: 'flex', flexDirection: 'column', height: isMobile ? '70vh' : 'auto' }}>
-            <div style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0' }}>
-              <div style={{ position: 'relative', marginBottom: '1rem' }}>
+      <AnimatePresence mode="wait">
+        {!selectedKhata ? (
+          <motion.div 
+            key="list"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          >
+            {/* Search and Filter */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div style={{ flex: 1, position: 'relative' }}>
                 <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                 <input 
                   type="text" 
-                  placeholder="Search customers" 
+                  placeholder="Search friends..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: '100%', padding: '0.6rem 0.6rem 0.6rem 2.5rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem' }}
+                  style={{ width: '100%', padding: '0.7rem 0.7rem 0.7rem 2.25rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 500 }}
                 />
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
-                {['all', 'get', 'give'].map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    style={{ 
-                      padding: '0.4rem 1rem', 
-                      borderRadius: '20px', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 700, 
-                      cursor: 'pointer',
-                      border: '1px solid #e2e8f0',
-                      background: filter === f ? '#2563eb' : 'white',
-                      color: filter === f ? 'white' : '#64748b',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {f === 'all' ? 'All' : f === 'get' ? 'You\'ll Get' : 'You\'ll Give'}
-                  </button>
-                ))}
-              </div>
+              <button 
+                style={{ padding: '0.7rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#64748b' }}
+                onClick={() => setFilter(filter === 'all' ? 'get' : filter === 'get' ? 'give' : 'all')}
+              >
+                <Filter size={18} />
+              </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', padding: '0.75rem 1rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8' }}>
-              <span>NAME</span>
-              <span style={{ textAlign: 'right' }}>AMOUNT</span>
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.8rem' }}>Loading...</div>
-              ) : filteredKhatas.map(khata => (
-                <div
+            {/* Customer List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {filteredKhatas.map(khata => (
+                <motion.div
                   key={khata._id}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedKhata(khata)}
-                  style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: '1fr 100px', 
-                    padding: '1rem', 
-                    cursor: 'pointer',
-                    background: selectedKhata?._id === khata._id ? '#eff6ff' : 'white',
-                    borderBottom: '1px solid #f1f5f9'
-                  }}
+                  className="premium-card"
+                  style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2563eb', fontSize: '0.8rem', border: '1px solid #e2e8f0' }}>
-                      {khata.personName.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>{khata.personName}</h4>
-                      <p style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{khata.transactions.length} Transactions</p>
+                  <div style={{ width: '45px', height: '45px', borderRadius: '14px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2563eb', fontSize: '1rem', border: '1px solid #e2e8f0' }}>
+                    {khata.personName.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.1rem' }}>{khata.personName}</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94a3b8' }}>
+                      <Clock size={12} />
+                      <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>{khata.transactions.length > 0 ? 'Last updated recently' : 'No entries yet'}</span>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '0.85rem', fontWeight: 800, color: khata.netBalance >= 0 ? '#10b981' : '#ef4444' }}>
+                    <p style={{ fontSize: '1rem', fontWeight: 900, color: khata.netBalance >= 0 ? '#10b981' : '#ef4444' }}>
                       ₹{Math.abs(khata.netBalance).toLocaleString('en-IN')}
                     </p>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, opacity: 0.6 }}>
-                      {khata.netBalance >= 0 ? 'Get' : 'Give'}
+                    <span style={{ fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', opacity: 0.7, color: khata.netBalance >= 0 ? '#10b981' : '#ef4444' }}>
+                      {khata.netBalance >= 0 ? 'To Get' : 'To Give'}
                     </span>
                   </div>
+                </motion.div>
+              ))}
+              {filteredKhatas.length === 0 && (
+                <div style={{ padding: '3rem 1rem', textAlign: 'center' }}>
+                  <div style={{ width: '60px', height: '60px', background: '#f8fafc', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
+                    <UserPlus size={24} color="#cbd5e1" />
+                  </div>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#64748b' }}>No friends found</h3>
+                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>Add a new friend to start tracking.</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="detail"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 220px)' }}
+          >
+            {/* Ledger Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <button onClick={() => setSelectedKhata(null)} style={{ background: '#f1f5f9', border: 'none', color: '#1e293b', cursor: 'pointer', padding: '0.6rem', borderRadius: '12px', display: 'flex' }}>
+                  <ArrowLeft size={20} />
+                </button>
+                <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: '#2563eb', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}>
+                  {selectedKhata.personName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1e293b' }}>{selectedKhata.personName}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: selectedKhata.netBalance >= 0 ? '#10b981' : '#ef4444' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800 }}>₹{Math.abs(selectedKhata.netBalance).toLocaleString('en-IN')}</span>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase' }}>{selectedKhata.netBalance >= 0 ? 'To Get' : 'To Give'}</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <a href={`tel:${selectedKhata.phoneNumber}`} style={{ padding: '0.6rem', borderRadius: '12px', background: '#f1f5f9', color: '#2563eb', display: 'flex' }}><Phone size={18} /></a>
+                <a href={`https://wa.me/91${selectedKhata.phoneNumber}`} target="_blank" rel="noreferrer" style={{ padding: '0.6rem', borderRadius: '12px', background: '#f0fdf4', color: '#10b981', display: 'flex' }}><MessageCircle size={18} /></a>
+                <button onClick={() => handleDeletePerson(selectedKhata._id)} style={{ padding: '0.6rem', borderRadius: '12px', background: '#fef2f2', color: '#ef4444', border: 'none' }}><Trash2 size={18} /></button>
+              </div>
+            </div>
+
+            {/* Transactions Area */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '1rem' }}>
+              {groupedTransactions.map(([date, transactions]) => (
+                <div key={date} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ textAlign: 'center', margin: '0.5rem 0' }}>
+                    <span style={{ background: '#f1f5f9', padding: '0.25rem 0.75rem', borderRadius: '10px', fontSize: '0.65rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>{date}</span>
+                  </div>
+                  {transactions.map(tx => (
+                    <div 
+                      key={tx._id} 
+                      style={{ 
+                        alignSelf: tx.type === 'gave' ? 'flex-end' : 'flex-start',
+                        maxWidth: '85%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: tx.type === 'gave' ? 'flex-end' : 'flex-start'
+                      }}
+                    >
+                      <div 
+                        style={{ 
+                          padding: '0.75rem 1rem', 
+                          background: tx.type === 'gave' ? '#fff1f2' : '#f0fdf4', 
+                          borderRadius: tx.type === 'gave' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                          border: `1px solid ${tx.type === 'gave' ? '#ffe4e6' : '#dcfce7'}`,
+                          position: 'relative'
+                        }}
+                      >
+                        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>{tx.description}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2rem' }}>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 900, color: tx.type === 'gave' ? '#e11d48' : '#16a34a' }}>₹{tx.amount.toLocaleString('en-IN')}</span>
+                          <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600 }}>{new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))}
+              {selectedKhata.transactions.length === 0 && (
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', textAlign: 'center', opacity: 0.6 }}>
+                  <BookOpen size={48} style={{ marginBottom: '1rem' }} />
+                  <p style={{ fontWeight: 700 }}>No entries found</p>
+                  <p style={{ fontSize: '0.75rem' }}>Start by adding "I Gave" or "I Got" entries.</p>
+                </div>
+              )}
             </div>
-          </div>
-        )}
 
-        {/* Right Side: Ledger Detail */}
-        {(!isMobile || selectedKhata) && (
-          <div style={{ background: 'white', display: 'flex', flexDirection: 'column', height: isMobile ? '80vh' : 'auto' }}>
-            {selectedKhata ? (
-              <>
-                {/* Ledger Header */}
-                <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {isMobile && (
-                      <button onClick={() => setSelectedKhata(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0.5rem 0.5rem 0.5rem 0' }}>
-                        <ArrowLeft size={20} />
-                      </button>
-                    )}
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#2563eb', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem' }}>
-                      {selectedKhata.personName.charAt(0).toUpperCase()}
-                    </div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 800 }}>{selectedKhata.personName}</h3>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => {}} style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: 'white', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>Report</button>
-                    <button onClick={(e) => handleDeletePerson(selectedKhata._id, e)} style={{ padding: '0.4rem', borderRadius: '6px', background: '#fee2e2', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
-                  </div>
-                </div>
-
-                {/* Transactions Area */}
-                <div style={{ flex: 1, overflowY: 'auto', background: '#f8fafc', padding: isMobile ? '0.75rem' : '1.5rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px', padding: '0.5rem 1rem', background: 'white', borderRadius: '8px 8px 0 0', border: '1px solid #e2e8f0', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8' }}>
-                    <span>ENTRIES</span>
-                    <span style={{ textAlign: 'center' }}>GAVE</span>
-                    <span style={{ textAlign: 'center' }}>GOT</span>
-                  </div>
-
-                  <div style={{ border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 8px 8px', background: 'white' }}>
-                    {groupedTransactions.map(([date, transactions]) => (
-                      <div key={date}>
-                        <div style={{ padding: '0.4rem 1rem', background: '#f1f5f9', fontSize: '0.6rem', fontWeight: 800, color: '#64748b' }}>
-                          {date}
-                        </div>
-                        {transactions.map(tx => (
-                          <div key={tx._id} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px', padding: '0.75rem 1rem', borderBottom: '1px solid #f1f5f9', alignItems: 'center' }}>
-                            <div>
-                              <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>{tx.description}</p>
-                              <p style={{ fontSize: '0.6rem', color: '#94a3b8' }}>{new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                              {tx.type === 'gave' ? (
-                                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#ef4444' }}>₹{tx.amount.toLocaleString('en-IN')}</span>
-                              ) : '-'}
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                              {tx.type === 'got' ? (
-                                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#10b981' }}>₹{tx.amount.toLocaleString('en-IN')}</span>
-                              ) : '-'}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div style={{ padding: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8' }}>TOTAL BALANCE</span>
-                    <h4 style={{ fontWeight: 900, color: selectedKhata.netBalance >= 0 ? '#10b981' : '#ef4444', fontSize: '0.9rem' }}>
-                      ₹{Math.abs(selectedKhata.netBalance).toLocaleString('en-IN')}
-                      <span style={{ fontSize: '0.65rem', marginLeft: '0.4rem', opacity: 0.6 }}>{selectedKhata.netBalance >= 0 ? 'to get' : 'to give'}</span>
-                    </h4>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
-                      onClick={() => { setNewTx({ ...newTx, type: 'gave' }); setShowAddTransaction(true); }}
-                      style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', background: '#ef4444', color: 'white', border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}
-                    >
-                      I GAVE ₹
-                    </button>
-                    <button 
-                      onClick={() => { setNewTx({ ...newTx, type: 'got' }); setShowAddTransaction(true); }}
-                      style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', background: '#10b981', color: 'white', border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}
-                    >
-                      I GOT ₹
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', padding: '2rem', textAlign: 'center' }}>
-                <BookOpen size={48} style={{ opacity: 0.1, marginBottom: '1rem' }} />
-                <p style={{ fontWeight: 700, fontSize: '0.9rem' }}>Select a customer to view ledger</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Add New Party Modal */}
-      <AnimatePresence>
-        {showAddPerson && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: isMobile ? '1rem' : '0' }}>
-            <div onClick={() => setShowAddPerson(false)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
-            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} style={{ width: '100%', maxWidth: '450px', maxHeight: '90vh', background: 'white', borderRadius: '8px', position: 'relative', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>Add New Party</h3>
-                <button onClick={() => setShowAddPerson(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={20} /></button>
-              </div>
-
-              <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
-                <form id="add-party-form" onSubmit={handleCreatePerson} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>Party Name</label>
-                    <input 
-                      autoFocus
-                      placeholder="Enter Party Name"
-                      value={newParty.personName}
-                      onChange={(e) => setNewParty({...newParty, personName: e.target.value})}
-                      style={{ padding: '0.6rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>Phone Number (optional)</label>
-                    <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
-                      <span style={{ padding: '0.6rem', background: '#f8fafc', borderRight: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#64748b' }}>+91</span>
-                      <input 
-                        placeholder="Enter Phone Number"
-                        value={newParty.phoneNumber}
-                        onChange={(e) => setNewParty({...newParty, phoneNumber: e.target.value})}
-                        style={{ flex: 1, padding: '0.6rem', border: 'none', fontSize: '0.9rem', outline: 'none' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>Opening Balance (optional)</label>
-                    <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
-                      <span style={{ padding: '0.6rem', background: '#f8fafc', borderRight: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#64748b' }}>₹</span>
-                      <input 
-                        type="number"
-                        placeholder="0"
-                        value={newParty.openingBalance}
-                        onChange={(e) => setNewParty({...newParty, openingBalance: e.target.value})}
-                        style={{ flex: 1, padding: '0.6rem', border: 'none', fontSize: '0.9rem', outline: 'none' }}
-                      />
-                      <select 
-                        value={newParty.openingBalanceType}
-                        onChange={(e) => setNewParty({...newParty, openingBalanceType: e.target.value})}
-                        style={{ padding: '0.6rem', border: 'none', borderLeft: '1px solid #e2e8f0', background: 'white', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, outline: 'none', cursor: 'pointer' }}
-                      >
-                        <option value="give">You Gave</option>
-                        <option value="got">You Got</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>Who are they?</label>
-                    <div style={{ display: 'flex', gap: '1.5rem' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>
-                        <input type="radio" checked={newParty.partyType === 'customer'} onChange={() => setNewParty({...newParty, partyType: 'customer'})} /> Customer
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>
-                        <input type="radio" checked={newParty.partyType === 'supplier'} onChange={() => setNewParty({...newParty, partyType: 'supplier'})} /> Supplier
-                      </label>
-                    </div>
-                  </div>
-                </form>
-              </div>
-
-              <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid #f1f5f9' }}>
-                <button form="add-party-form" type="submit" disabled={actionLoading || !newParty.personName} style={{ width: '100%', padding: '0.75rem', background: !newParty.personName ? '#e2e8f0' : '#2563eb', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}>
-                  {actionLoading ? 'Adding...' : 'Add Customer'}
-                </button>
-              </div>
-            </motion.div>
-          </div>
+            {/* Quick Action Bar */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+              <button 
+                onClick={() => { setNewTx({ ...newTx, type: 'gave' }); setShowAddTransaction(true); }}
+                style={{ padding: '1rem', borderRadius: '16px', background: '#ef4444', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)' }}
+              >
+                YOU GAVE ₹
+              </button>
+              <button 
+                onClick={() => { setNewTx({ ...newTx, type: 'got' }); setShowAddTransaction(true); }}
+                style={{ padding: '1rem', borderRadius: '16px', background: '#10b981', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.9rem', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}
+              >
+                YOU GOT ₹
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Add New Party - Centered Modal */}
       <AnimatePresence>
-        {showAddTransaction && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '1rem' }}>
-            <div onClick={() => setShowAddTransaction(false)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)' }} />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '1.5rem', borderRadius: '12px', position: 'relative' }}>
-              <h3 style={{ marginBottom: '1rem', fontWeight: 800 }}>{newTx.type === 'gave' ? 'You Gave' : 'You Got'}</h3>
-              <form onSubmit={handleAddTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <input 
-                  type="number"
-                  placeholder="Amount"
-                  value={newTx.amount}
-                  onChange={(e) => setNewTx({...newTx, amount: e.target.value})}
-                  style={{ padding: '0.6rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '1.1rem', fontWeight: 800 }}
-                />
-                <input 
-                  placeholder="Description"
-                  value={newTx.description}
-                  onChange={(e) => setNewTx({...newTx, description: e.target.value})}
-                  style={{ padding: '0.6rem', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                />
-                <button type="submit" disabled={actionLoading} style={{ padding: '0.75rem', background: newTx.type === 'gave' ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700 }}>
-                  Save Entry
+        {showAddPerson && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2500, padding: '1.5rem' }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddPerson(false)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)' }} />
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} style={{ width: '100%', maxWidth: '400px', background: 'white', borderRadius: '24px', position: 'relative', display: 'flex', flexDirection: 'column', padding: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>Add New Friend</h3>
+                <button onClick={() => setShowAddPerson(false)} style={{ background: '#f1f5f9', border: 'none', padding: '0.5rem', borderRadius: '50%', color: '#64748b' }}><X size={20} /></button>
+              </div>
+
+              <form onSubmit={handleCreatePerson} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Full Name</label>
+                  <input autoFocus placeholder="Enter name" value={newParty.personName} onChange={(e) => setNewParty({...newParty, personName: e.target.value})} style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '14px', fontSize: '1rem', fontWeight: 600, background: '#f8fafc' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Phone Number</label>
+                  <input type="tel" placeholder="10-digit mobile" value={newParty.phoneNumber} onChange={(e) => setNewParty({...newParty, phoneNumber: e.target.value})} style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '14px', fontSize: '1rem', fontWeight: 600, background: '#f8fafc' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Opening Balance</label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <span style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 800, color: '#94a3b8' }}>₹</span>
+                      <input type="number" placeholder="0" value={newParty.openingBalance} onChange={(e) => setNewParty({...newParty, openingBalance: e.target.value})} style={{ width: '100%', padding: '0.85rem 0.85rem 0.85rem 1.75rem', border: '1px solid #e2e8f0', borderRadius: '14px', fontSize: '1rem', fontWeight: 800, background: '#f8fafc' }} />
+                    </div>
+                    <select value={newParty.openingBalanceType} onChange={(e) => setNewParty({...newParty, openingBalanceType: e.target.value})} style={{ width: '100px', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '0 0.5rem', fontWeight: 700, fontSize: '0.75rem', background: 'white' }}>
+                      <option value="give">I GAVE</option>
+                      <option value="got">I GOT</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" disabled={actionLoading || !newParty.personName} style={{ width: '100%', padding: '1rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '1rem', marginTop: '0.5rem', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)' }}>
+                  {actionLoading ? 'Saving...' : 'Add Friend'}
                 </button>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {/* Add Transaction - Bottom Sheet */}
+      <AnimatePresence>
+        {showAddTransaction && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'flex-end', zIndex: 5000 }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddTransaction(false)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)' }} />
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} style={{ width: '100%', background: 'white', borderRadius: '32px 32px 0 0', position: 'relative', display: 'flex', flexDirection: 'column', padding: '1.5rem', boxShadow: '0 -10px 40px rgba(0,0,0,0.1)' }}>
+              <div style={{ width: '40px', height: '4px', background: '#e2e8f0', borderRadius: '2px', margin: '0 auto 1.5rem auto' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{newTx.type === 'gave' ? 'You Gave Money' : 'You Got Money'}</h3>
+                <button onClick={() => setShowAddTransaction(false)} style={{ background: '#f1f5f9', border: 'none', padding: '0.5rem', borderRadius: '50%' }}><X size={20} /></button>
+              </div>
+              <form onSubmit={handleAddTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Amount</label>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 900, fontSize: '1.2rem', color: newTx.type === 'gave' ? '#ef4444' : '#10b981' }}>₹</span>
+                    <input autoFocus type="number" placeholder="0.00" value={newTx.amount} onChange={(e) => setNewTx({...newTx, amount: e.target.value})} style={{ width: '100%', padding: '1rem 1rem 1rem 2.5rem', border: '2px solid #f1f5f9', borderRadius: '20px', fontSize: '1.5rem', fontWeight: 900, color: '#1e293b' }} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Note / Description</label>
+                  <input placeholder="What was this for?" value={newTx.description} onChange={(e) => setNewTx({...newTx, description: e.target.value})} style={{ width: '100%', padding: '1rem', border: '2px solid #f1f5f9', borderRadius: '16px', fontSize: '1rem', fontWeight: 600 }} />
+                </div>
+                <button type="submit" disabled={actionLoading || !newTx.amount} style={{ width: '100%', padding: '1.1rem', background: newTx.type === 'gave' ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '20px', fontWeight: 800, fontSize: '1.1rem', boxShadow: `0 4px 15px ${newTx.type === 'gave' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)'}` }}>
+                  {actionLoading ? 'Saving Entry...' : 'Confirm Entry'}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Action Button */}
+      {!selectedKhata && !showAddPerson && (
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setShowAddPerson(true)}
+          style={{
+            position: 'fixed',
+            bottom: '100px',
+            right: '20px',
+            width: '60px',
+            height: '60px',
+            borderRadius: '20px',
+            background: '#2563eb',
+            color: 'white',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 8px 25px rgba(37, 99, 235, 0.4)',
+            zIndex: 1000,
+            cursor: 'pointer'
+          }}
+        >
+          <UserPlus size={24} />
+        </motion.button>
+      )}
     </div>
   );
 };
 
 export default Khata;
-
-
-

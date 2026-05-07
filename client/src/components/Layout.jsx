@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import BottomNavigation from './BottomNavigation';
 import AddTransactionModal from './AddTransactionModal';
 import { motion } from 'framer-motion';
 
 const Layout = () => {
+  const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -15,39 +17,42 @@ const Layout = () => {
     return () => window.removeEventListener('toggleSidebar', handleToggle);
   }, []);
 
+  // Close sidebar and modal on route change
+  useEffect(() => {
+    setIsSidebarOpen(false);
+    setIsModalOpen(false);
+  }, [location]);
+
   const handleRefresh = () => {
     window.location.reload();
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
-      {/* Sidebar - Handles both Desktop and Mobile Drawer */}
+    <div className="app-container">
+      {/* Sidebar - Remains as a hidden drawer for "More" options */}
       <Sidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
         onAddTransaction={() => setIsModalOpen(true)} 
       />
       
+      {/* Header */}
+      <Header />
+
       {/* Main Content Area */}
-      <main style={{ 
-        flex: 1, 
-        padding: '0 2.5rem 2rem 2.5rem', 
-        overflowY: 'auto',
-        maxWidth: '100vw'
-      }}>
-        <Header />
-        
+      <main>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ maxWidth: '1400px', margin: '0 auto' }}
           className="mobile-container-wrapper"
         >
           <Outlet />
         </motion.div>
-
       </main>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation onAddTransaction={() => setIsModalOpen(true)} />
 
       <AddTransactionModal 
         isOpen={isModalOpen} 

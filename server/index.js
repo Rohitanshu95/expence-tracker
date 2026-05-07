@@ -78,7 +78,7 @@ app.get('/', (req, res) => {
 // 404 Handler for Debugging
 app.use((req, res) => {
   console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
+  res.status(404).json({ 
     message: `Route ${req.method} ${req.originalUrl} not found`,
     availableRoutes: ['/api/auth/login', '/api/auth/register', '/api/auth/me']
   });
