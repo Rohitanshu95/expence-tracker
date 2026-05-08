@@ -2,25 +2,14 @@
     "version": 2,
     "builds": [
         {
-            "src": "./index.js",
-            "use": "@vercel/node"
+            "src":"./index.js",
+            "use":"@vercel/node"
         }
     ],
     "routes": [
         {
-            "src": "/api/(.*)",
-            "dest": "./index.js",
-            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-            "headers": {
-                "Access-Control-Allow-Origin": "https://my-expence-tracckker.vercel.app",
-                "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                "Access-Control-Allow-Credentials": "true"
-            }
-        },
-        {
             "src": "/(.*)",
-            "dest": "./index.js"
+            "dest": "/"
         }
     ]
 }
