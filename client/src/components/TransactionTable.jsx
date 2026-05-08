@@ -53,7 +53,7 @@ const TransactionTable = ({ transactions, onDelete, compact = false }) => {
                 </p>
                 <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>{new Date(tx.date).toLocaleDateString()}</p>
               </div>
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <p style={{ 
                   fontWeight: 800, 
                   fontSize: '0.95rem',
@@ -61,6 +61,30 @@ const TransactionTable = ({ transactions, onDelete, compact = false }) => {
                 }}>
                   {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN')}
                 </p>
+                {onDelete && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onDelete(tx._id); }}
+                    style={{ 
+                      color: '#94a3b8', 
+                      background: '#f8fafc', 
+                      border: '1px solid #f1f5f9', 
+                      borderRadius: '8px', 
+                      padding: '0.4rem', 
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
+                    }}
+                    onTouchStart={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = '#fef2f2'; }}
+                    onTouchEnd={(e) => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = '#fef2f2'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             </motion.div>
           ))

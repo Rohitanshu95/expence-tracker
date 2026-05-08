@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SummaryCard from '../components/SummaryCard';
 import CategoryBreakdown from '../components/CategoryBreakdown';
 import TransactionTable from '../components/TransactionTable';
@@ -10,6 +11,7 @@ import { motion } from 'framer-motion';
 import Modal from '../components/Modal';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { searchQuery } = useSearch();
   const [summary, setSummary] = useState({ totalBalance: 0, totalIncome: 0, totalExpense: 0, chartData: [], categoryData: [] });
@@ -190,7 +192,10 @@ const Dashboard = () => {
         <div className="premium-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3 style={{ fontWeight: 800, fontSize: '1rem', color: '#1e293b' }}>Recent Logs</h3>
-            <button style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563eb', background: 'none', border: 'none' }}>All</button>
+            <button 
+              onClick={() => navigate('/transactions')} 
+              style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}
+            >View All</button>
           </div>
           <TransactionTable transactions={filteredTransactions} onDelete={handleDelete} compact />
         </div>

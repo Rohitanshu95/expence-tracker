@@ -7,12 +7,12 @@ import {
   TrendingUp, 
   TrendingDown, 
   FileText, 
-  Settings,
   X,
   BookOpen,
   Activity,
   ChevronRight,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Tag
 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -21,13 +21,13 @@ const Sidebar = ({ isOpen, onClose, onAddTransaction }) => {
 
   const navItems = [
     { icon: LayoutGrid, label: 'Dashboard Overview', path: '/' },
+    { icon: Tag, label: 'Categories / Modules', path: '/modules' },
     { icon: BookOpen, label: 'Friend Khata Ledger', path: '/khata' },
     { icon: UtensilsCrossed, label: 'Canteen Tracker', path: '/canteen' },
     { icon: TrendingUp, label: 'Income Management', path: '/income' },
     { icon: TrendingDown, label: 'Expense Tracking', path: '/expenses' },
     { icon: Activity, label: 'Visual Analytics', path: '/analytics' },
     { icon: FileText, label: 'Financial Reports', path: '/reports' },
-    { icon: Settings, label: 'App Settings', path: '/settings' },
   ];
 
   const sheetContent = (

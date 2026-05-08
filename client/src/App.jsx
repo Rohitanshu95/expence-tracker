@@ -11,7 +11,7 @@ import Modules from './pages/Modules';
 import FinanceView from './pages/FinanceView';
 import Analytics from './pages/Analytics';
 import Reports from './pages/Reports';
-import Settings from './pages/Settings';
+
 import CanteenTracker from './pages/CanteenTracker';
 import Khata from './pages/Khata';
 import Profile from './pages/Profile';
@@ -36,7 +36,7 @@ function App() {
               <Route path="/expenses" element={<FinanceView type="expense" />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
+
               <Route path="/canteen" element={<CanteenTracker />} />
               <Route path="/khata" element={<Khata />} />
               <Route path="/profile" element={<Profile />} />

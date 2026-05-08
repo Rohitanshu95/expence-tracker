@@ -82,10 +82,16 @@ const Profile = () => {
   };
 
   const avatars = [
-    '😎', '🤓', '🤩', '🥳', '🤠', 
-    '😇', '🤡', '🤖', '👻', '👽', 
-    '🥷', '🦁', '🦊', '🦄', '🐲', 
-    '🚀', '💰', '💎', '🔥', '✨'
+    { src: '/src/assets/avatars/male_1.png', label: 'Male 1' },
+    { src: '/src/assets/avatars/male_2.png', label: 'Male 2' },
+    { src: '/src/assets/avatars/male_3.png', label: 'Male 3' },
+    { src: '/src/assets/avatars/male_4.png', label: 'Male 4' },
+    { src: '/src/assets/avatars/male_5.png', label: 'Male 5' },
+    { src: '/src/assets/avatars/female_1.png', label: 'Female 1' },
+    { src: '/src/assets/avatars/female_2.png', label: 'Female 2' },
+    { src: '/src/assets/avatars/female_3.png', label: 'Female 3' },
+    { src: '/src/assets/avatars/female_4.png', label: 'Female 4' },
+    { src: '/src/assets/avatars/female_5.png', label: 'Female 5' },
   ];
 
   return (
@@ -156,11 +162,7 @@ const Profile = () => {
                   boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
                 }}>
                   {avatar ? (
-                    avatar.startsWith('http') ? (
-                      <img src={avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <span style={{ fontSize: '3rem' }}>{avatar}</span>
-                    )
+                    <img src={avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white' }}>{username?.charAt(0).toUpperCase()}</span>
                   )}
@@ -173,24 +175,28 @@ const Profile = () => {
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                 {avatars.map((av) => (
                   <button 
-                    key={av} 
+                    key={av.label} 
                     type="button"
-                    onClick={() => setAvatar(av)}
+                    onClick={() => setAvatar(av.src)}
                     style={{ 
-                      width: '40px', 
-                      height: '40px', 
-                      borderRadius: '12px', 
-                      border: avatar === av ? '2px solid var(--primary)' : '1px solid #f1f5f9',
+                      width: '48px', 
+                      height: '48px', 
+                      borderRadius: '50%', 
+                      border: avatar === av.src ? '3px solid var(--primary)' : '2px solid #f1f5f9',
                       padding: 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      background: avatar === av ? '#eff6ff' : '#f8fafc',
-                      fontSize: '1.25rem'
+                      background: '#f8fafc',
+                      overflow: 'hidden',
+                      transition: 'all 0.2s ease',
+                      transform: avatar === av.src ? 'scale(1.1)' : 'scale(1)',
+                      boxShadow: avatar === av.src ? '0 4px 12px rgba(37, 99, 235, 0.25)' : 'none'
                     }}
+                    title={av.label}
                   >
-                    {av}
+                    <img src={av.src} alt={av.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </button>
                 ))}
               </div>

@@ -120,11 +120,7 @@ const Header = () => {
             overflow: 'hidden'
           }}>
             {user?.avatar ? (
-              user.avatar.startsWith('http') ? (
-                <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <span style={{ fontSize: '1.25rem' }}>{user.avatar}</span>
-              )
+              <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <span>{user?.username?.charAt(0).toUpperCase() || 'U'}</span>
             )}
