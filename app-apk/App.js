@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TextInput, Button, PermissionsAndroid, Alert, TouchableOpacity } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const WEBHOOK_FILE = FileSystem.documentDirectory + 'webhook.txt';
 
@@ -31,7 +31,7 @@ export default function App() {
       await FileSystem.writeAsStringAsync(WEBHOOK_FILE, webhookUrl);
       Alert.alert('Success', 'Webhook URL saved successfully! The background task will use this URL.');
     } catch (e) {
-      Alert.alert('Error', 'Failed to save URL');
+      Alert.alert('Error', `Failed to save URL: ${e.message || JSON.stringify(e)}`);
     }
   };
 
