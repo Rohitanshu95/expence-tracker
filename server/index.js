@@ -11,6 +11,7 @@ if (!process.env.JWT_SECRET) {
   console.warn('⚠️ WARNING: JWT_SECRET is not defined in .env file');
 }
 
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -20,7 +21,7 @@ const baseFrontendUrl = process.env.NODE_ENV === "development" ? "http://localho
 const allowedOrigins = ["https://my-expence-tracckker.vercel.app"];
 
 app.use(cors({
-  origin: "https://my-expence-tracckker.vercel.app",
+  origin: "http://localhost:5173",
   credentials: true,
 }));
 
@@ -77,6 +78,7 @@ app.use('/api/modules', moduleRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/canteen', canteenRoutes);
 app.use('/api/khata', khataRoutes);
+app.use('/api/v1/webhooks', require('./src/routes/webhookRoutes'));
 
 app.get('/api/ping', (req, res) => res.json({ message: 'pong' }));
 
@@ -87,7 +89,7 @@ app.get('/', (req, res) => {
 // 404 Handler for Debugging
 app.use((req, res) => {
   console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({ 
+  res.status(404).json({
     message: `Route ${req.method} ${req.originalUrl} not found`,
     availableRoutes: ['/api/auth/login', '/api/auth/register', '/api/auth/me']
   });
