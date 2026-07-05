@@ -1,10 +1,12 @@
 const express = require('express');
 const { handleSmsWebhook } = require('../controllers/webhookController');
+const webhookAuth = require('../middleware/webhookAuth');
+const { webhookLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
-// Webhook endpoint does not require auth middleware because the SMS forwarder app
-// might not have the user's JWT token. We handle user association in the controller.
-router.post('/sms', handleSmsWebhook);
+// The SMS forwarder authenticates with a per-user webhook token (see webhookAuth).
+// The token both authenticates the request and binds it to a specific user.
+router.post('/sms', webhookLimiter, webhookAuth, handleSmsWebhook);
 
 module.exports = router;

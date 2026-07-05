@@ -1,18 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, Button, PermissionsAndroid, Alert, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, PermissionsAndroid, Alert, TouchableOpacity, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 
 const WEBHOOK_FILE = FileSystem.documentDirectory + 'webhook.txt';
+const WEBHOOK_TOKEN_FILE = FileSystem.documentDirectory + 'webhook_token.txt';
 
 export default function App() {
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookToken, setWebhookToken] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
 
   useEffect(() => {
     loadSettings();
     checkPermissions();
   }, []);
+
+  const checkPermissions = async () => {
+    try {
+      const smsGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECEIVE_SMS);
+      setHasPermission(smsGranted);
+
+      // Request Notification permission for Foreground Service (Android 13+)
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -21,6 +37,11 @@ export default function App() {
         const url = await FileSystem.readAsStringAsync(WEBHOOK_FILE);
         setWebhookUrl(url.trim());
       }
+      const tokenInfo = await FileSystem.getInfoAsync(WEBHOOK_TOKEN_FILE);
+      if (tokenInfo.exists) {
+        const token = await FileSystem.readAsStringAsync(WEBHOOK_TOKEN_FILE);
+        setWebhookToken(token.trim());
+      }
     } catch (e) {
       console.error('Failed to load settings', e);
     }
@@ -28,17 +49,24 @@ export default function App() {
 
   const saveSettings = async () => {
     try {
-      await FileSystem.writeAsStringAsync(WEBHOOK_FILE, webhookUrl);
-      Alert.alert('Success', 'Webhook URL saved successfully! The background task will use this URL.');
+      const url = webhookUrl.trim();
+      // Enforce HTTPS so the (potentially sensitive) SMS content is encrypted in transit.
+      if (!url.startsWith('https://')) {
+        Alert.alert('Insecure URL', 'The webhook URL must start with https:// to protect your SMS data.');
+        return;
+      }
+      if (!webhookToken.trim()) {
+        Alert.alert('Missing token', 'Please paste the webhook token generated in your account settings.');
+        return;
+      }
+      await FileSystem.writeAsStringAsync(WEBHOOK_FILE, url);
+      await FileSystem.writeAsStringAsync(WEBHOOK_TOKEN_FILE, webhookToken.trim());
+      Alert.alert('Success', 'Webhook URL and token saved. The background task will use these to authenticate.');
     } catch (e) {
-      Alert.alert('Error', `Failed to save URL: ${e.message || JSON.stringify(e)}`);
+      Alert.alert('Error', `Failed to save settings: ${e.message || JSON.stringify(e)}`);
     }
   };
 
-  const checkPermissions = async () => {
-    const granted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECEIVE_SMS);
-    setHasPermission(granted);
-  };
 
   const requestPermissions = async () => {
     try {
@@ -72,13 +100,23 @@ export default function App() {
         <Text style={styles.label}>Backend Webhook URL</Text>
         <TextInput
           style={styles.input}
-          placeholder="http://your-server-ip:5000/api/v1/webhooks/sms"
+          placeholder="https://your-server.com/api/v1/webhooks/sms"
           value={webhookUrl}
           onChangeText={setWebhookUrl}
           autoCapitalize="none"
           autoCorrect={false}
         />
-        <Button title="Save URL" onPress={saveSettings} color="#007BFF" />
+        <Text style={styles.label}>Webhook Token</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Paste token from account settings"
+          value={webhookToken}
+          onChangeText={setWebhookToken}
+          autoCapitalize="none"
+          autoCorrect={false}
+          secureTextEntry
+        />
+        <Button title="Save Settings" onPress={saveSettings} color="#007BFF" />
       </View>
 
       <View style={styles.card}>

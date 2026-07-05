@@ -6,8 +6,12 @@ const addTransaction = async (req, res) => {
     console.log("Incoming Transaction Request:", req.body);
     
     if (Array.isArray(req.body)) {
+      // Whitelist fields explicitly — never spread the raw request object, or a
+      // client could set protected fields like `status`, `_id`, or `createdAt`.
       const transactions = req.body.map(t => ({
-        ...t,
+        amount: t.amount,
+        type: t.type,
+        note: t.note,
         date: t.date || Date.now(),
         user: req.userId,
         module: t.moduleId // Map moduleId to module field
@@ -44,7 +48,7 @@ const addTransaction = async (req, res) => {
     res.status(201).json(newTransaction);
   } catch (error) {
     console.error("Add Transaction Error:", error);
-    res.status(500).json({ message: "Error adding transaction", error: error.message });
+    res.status(500).json({ message: "Error adding transaction" });
   }
 };
 
@@ -69,7 +73,7 @@ const getTransactions = async (req, res) => {
       .sort({ date: -1 });
     res.status(200).json(transactions);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching transactions", error: error.message });
+    res.status(500).json({ message: "Error fetching transactions" });
   }
 };
 
@@ -79,7 +83,7 @@ const deleteTransaction = async (req, res) => {
     await Transaction.findOneAndDelete({ _id: id, user: req.userId });
     res.status(200).json({ message: "Transaction deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting transaction", error: error.message });
+    res.status(500).json({ message: "Error deleting transaction" });
   }
 };
 
@@ -169,7 +173,7 @@ const getSummary = async (req, res) => {
 
   } catch (error) {
     console.error("Summary Error:", error);
-    res.status(500).json({ message: "Error fetching summary", error: error.message });
+    res.status(500).json({ message: "Error fetching summary" });
   }
 };
 

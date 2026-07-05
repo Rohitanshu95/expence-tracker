@@ -11,7 +11,7 @@ const getCanteenStatus = async (req, res) => {
     
     res.status(200).json(canteen);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching canteen status', error: error.message });
+    res.status(500).json({ message: 'Error fetching canteen status' });
   }
 };
 
@@ -53,7 +53,7 @@ const logMeal = async (req, res) => {
     await canteen.save();
     res.status(200).json(canteen);
   } catch (error) {
-    res.status(500).json({ message: 'Error logging meal', error: error.message });
+    res.status(500).json({ message: 'Error logging meal' });
   }
 };
 
@@ -82,7 +82,7 @@ const deleteMeal = async (req, res) => {
     await canteen.save();
     res.status(200).json(canteen);
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting meal', error: error.message });
+    res.status(500).json({ message: 'Error deleting meal' });
   }
 };
 
@@ -117,7 +117,7 @@ const renewPass = async (req, res) => {
     await canteen.save();
     res.status(200).json(canteen);
   } catch (error) {
-    res.status(500).json({ message: 'Error renewing pass', error: error.message });
+    res.status(500).json({ message: 'Error renewing pass' });
   }
 };
 

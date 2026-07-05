@@ -11,6 +11,7 @@
     },
     "android": {
       "package": "com.expensetracker.smsforwarder",
+      
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

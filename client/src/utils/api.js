@@ -1,8 +1,10 @@
 import axios from 'axios';
 
+// Base URL comes from VITE_API_URL (set per environment). Defaults to the HTTPS
+// production API — never plain HTTP — so credentials/cookies are sent securely.
+// For local dev, set VITE_API_URL=http://localhost:5000/api in client/.env.local.
 const api = axios.create({
-  // baseURL: "https://expence-tracker-tltn.vercel.app/api",
-   baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://expence-tracker-tltn.vercel.app/api",
   withCredentials: true, // Required for sending/receiving cookies
 });
 

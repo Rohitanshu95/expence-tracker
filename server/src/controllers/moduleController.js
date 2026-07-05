@@ -14,7 +14,7 @@ const createModule = async (req, res) => {
     await newModule.save();
     res.status(201).json(newModule);
   } catch (error) {
-    res.status(500).json({ message: "Error creating module", error: error.message });
+    res.status(500).json({ message: "Error creating module" });
   }
 };
 
@@ -52,7 +52,7 @@ const getModules = async (req, res) => {
     
     res.status(200).json(modules);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching modules", error: error.message });
+    res.status(500).json({ message: "Error fetching modules" });
   }
 };
 
@@ -62,7 +62,7 @@ const deleteModule = async (req, res) => {
     await Module.findOneAndDelete({ _id: id, user: req.userId });
     res.status(200).json({ message: "Module deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting module", error: error.message });
+    res.status(500).json({ message: "Error deleting module" });
   }
 };
 

@@ -1,47 +1,60 @@
 const Transaction = require('../models/Transaction');
 
+const MAX_TEXT_LENGTH = 1000;
+const MAX_SENDER_LENGTH = 100;
+
 const handleSmsWebhook = async (req, res) => {
   try {
     const { sender, text, timestamp } = req.body;
-    console.log(`[Webhook] SMS received from ${sender}: ${text}`);
 
-    // In a full implementation, you would call your LLM here (e.g. Gemini/Groq)
-    // to parse the "text" into amount, type, etc.
-    // For now, we will create a pending transaction with the raw text as a note.
-    
-    // Mock LLM parsing (you can replace this with actual LLM API call)
-    const amountMatch = text.match(/(?:rs\.?|inr)\s*([\d,]+\.?\d*)/i) || text.match(/([\d,]+\.?\d*)\s*(?:rs\.?|inr)/i);
-    const amount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : 0;
-    
-    const type = text.toLowerCase().includes('credit') || text.toLowerCase().includes('credited') ? 'income' : 'expense';
-
-    const newTransaction = new Transaction({
-      amount: amount || 0,
-      note: `SMS from ${sender}: ${text}`,
-      type: type,
-      status: 'pending',
-      // We assume a default user for webhooks if auth isn't passed, 
-      // or you can pass user ID in the webhook URL. 
-      // For this single-user setup, we'll hardcode or fetch the first user.
-      user: '000000000000000000000000', // To be replaced with actual user ID
-      date: new Date(timestamp || Date.now())
-    });
-
-    // To make this work without auth middleware on webhook, 
-    // we need to get the user ID. We'll try to find the first user.
-    const User = require('../models/User');
-    const defaultUser = await User.findOne();
-    if (defaultUser) {
-      newTransaction.user = defaultUser._id;
+    // Input validation — the payload is attacker-influenced (comes from arbitrary SMS).
+    if (typeof text !== 'string' || text.trim().length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid or missing "text"' });
+    }
+    if (sender !== undefined && typeof sender !== 'string') {
+      return res.status(400).json({ success: false, message: 'Invalid "sender"' });
     }
 
+    const safeText = text.slice(0, MAX_TEXT_LENGTH);
+    const safeSender = (typeof sender === 'string' ? sender : 'Unknown').slice(0, MAX_SENDER_LENGTH);
+
+    // The authenticated user is resolved by the webhookAuth middleware.
+    const userId = req.webhookUser._id;
+
+    // Mock LLM parsing (replace with a real LLM call as needed).
+    const amountMatch =
+      safeText.match(/(?:rs\.?|inr)\s*([\d,]+\.?\d*)/i) ||
+      safeText.match(/([\d,]+\.?\d*)\s*(?:rs\.?|inr)/i);
+    const amount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : 0;
+
+    const lower = safeText.toLowerCase();
+    const type = lower.includes('credit') || lower.includes('credited') ? 'income' : 'expense';
+
+    let parsedDate = new Date();
+    if (timestamp !== undefined && timestamp !== null) {
+      const asNumber = Number(timestamp);
+      const candidate = !Number.isNaN(asNumber) ? new Date(asNumber) : new Date(timestamp);
+      if (!Number.isNaN(candidate.getTime())) {
+        parsedDate = candidate;
+      }
+    }
+
+    const newTransaction = new Transaction({
+      amount: Number.isFinite(amount) ? amount : 0,
+      note: `SMS from ${safeSender}: ${safeText}`,
+      type,
+      status: 'pending',
+      user: userId,
+      date: parsedDate,
+    });
+
     await newTransaction.save();
-    console.log('[Webhook] Pending transaction saved successfully.');
+    console.log(`[Webhook] Pending transaction saved for user ${userId}.`);
 
     res.status(200).json({ success: true, message: 'SMS parsed and saved as pending transaction' });
   } catch (error) {
     console.error('[Webhook] Error processing SMS:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, message: 'Error processing SMS' });
   }
 };
 

@@ -3,33 +3,50 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const morgan = require('morgan');
+const sanitize = require('./src/middleware/sanitize');
 
 dotenv.config();
 
-if (!process.env.JWT_SECRET) {
-  console.warn('⚠️ WARNING: JWT_SECRET is not defined in .env file');
+// Fail fast: never run with a missing or weak JWT signing key (forgeable tokens).
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('FATAL: JWT_SECRET is missing or shorter than 32 characters. Refusing to start.');
+  process.exit(1);
 }
 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const baseFrontendUrl = process.env.NODE_ENV === "development" ? "http://localhost:5173" : "https://my-expence-tracckker.vercel.app";
+// Behind Vercel's proxy — trust the first proxy hop so rate limiters and any
+// IP-based logic see the real client IP (from X-Forwarded-For) rather than the proxy.
+app.set('trust proxy', 1);
 
-// Middleware
-const allowedOrigins = ["https://my-expence-tracckker.vercel.app"];
+// CORS: allow only origins from the env allowlist (comma-separated). Never reflect
+// arbitrary origins together with credentials. Requests with no Origin (e.g. the
+// SMS forwarder, curl, health checks) are allowed through.
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 
-// Explicitly handle preflight OPTIONS requests
+// Security headers.
+app.use(helmet());
 
-
-app.use(express.json());
+// Cap request body size to blunt oversized-payload DoS.
+app.use(express.json({ limit: '32kb' }));
 app.use(cookieParser());
+// Strip Mongo operator keys ($..., dotted paths) from body/params.
+app.use(sanitize);
 // app.use(morgan('dev'));
 // Routes
 const authRoutes = require('./src/routes/authRoutes');

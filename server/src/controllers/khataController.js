@@ -7,7 +7,7 @@ exports.getKhatas = async (req, res) => {
     res.json(khatas);
   } catch (err) {
     console.error('ERROR in getKhatas:', err);
-    res.status(500).json({ message: 'Server Error', error: err.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -40,7 +40,7 @@ exports.createKhata = async (req, res) => {
     res.status(201).json(khata);
   } catch (err) {
     console.error('ERROR in createKhata:', err);
-    res.status(500).json({ message: 'Server Error', error: err.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -59,7 +59,7 @@ exports.addKhataTransaction = async (req, res) => {
     res.json(khata);
   } catch (err) {
     console.error('ERROR in addKhataTransaction:', err);
-    res.status(500).json({ message: 'Server Error', error: err.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -71,7 +71,7 @@ exports.deleteKhata = async (req, res) => {
     res.json({ message: 'Khata removed' });
   } catch (err) {
     console.error('ERROR in deleteKhata:', err);
-    res.status(500).json({ message: 'Server Error', error: err.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -86,6 +86,6 @@ exports.deleteKhataTransaction = async (req, res) => {
     res.json(khata);
   } catch (err) {
     console.error('ERROR in deleteKhataTransaction:', err);
-    res.status(500).json({ message: 'Server Error', error: err.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
